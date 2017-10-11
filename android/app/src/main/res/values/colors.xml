@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#43cc61</color>
+    <color name="colorPrimaryDark">#106b3c</color>
+    <color name="colorAccent">#d75f0f</color>
+    <color name="colorSelectBTDeviceBackground">#ffffff</color>
+</resources>
