@@ -1,4 +1,4 @@
-package se.viltefjall.tekk.ermina.SelectBTDevice;
+package se.viltefjall.tekk.ermina.SelectDevice;
 
 import android.content.Context;
 import android.support.annotation.Nullable;

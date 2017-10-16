@@ -1,25 +1,23 @@
-package se.viltefjall.tekk.ermina.SelectBTDevice;
+package se.viltefjall.tekk.ermina.SelectDevice;
 
-import android.animation.Animator;
 import android.content.Context;
-import android.support.v7.widget.LinearLayoutManager;
+import android.content.Intent;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.View;
 
-import se.viltefjall.tekk.ermina.R;
-import se.viltefjall.tekk.ermina.common.BTDevice;
+import se.viltefjall.tekk.ermina.ViewStatus.ViewStatusActivity;
+import se.viltefjall.tekk.ermina.common.ErminaDevice;
 
 class DeviceOnClickListener implements View.OnClickListener {
     private static final String ID = "DeviceOnClickListener";
 
-    private RecyclerView  mRecyclerView;
-    private Context       mContext;
-    private BTDevice      mDevice;
+    private RecyclerView mRecyclerView;
+    private Context      mContext;
+    private ErminaDevice mDevice;
 
     DeviceOnClickListener(Context      context,
                           RecyclerView recyclerView,
-                          BTDevice     device) {
+                          ErminaDevice device) {
         mContext       = context;
         mDevice        = device;
         mRecyclerView  = recyclerView;
@@ -27,6 +25,11 @@ class DeviceOnClickListener implements View.OnClickListener {
 
     @Override
     public void onClick(View view) {
+        Intent intent = new Intent(mContext, ViewStatusActivity.class);
+        intent.putExtra(ViewStatusActivity.SELECTED_DEVICE, mDevice);
+        mContext.startActivity(intent);
+
+        /*
         final int           start;
         int                 end;
         LinearLayoutManager llm;
@@ -64,12 +67,12 @@ class DeviceOnClickListener implements View.OnClickListener {
                                     //mDevices.remove(finalI);
                                     //mDeviceAdapter.notifyItemRemoved(finalI);
 
-                                    /*if(finalI == start) {
+                                    if(finalI == start) {
                                         Intent intent = new Intent(mContext,
-                                                ControlDeviceActivity.class);
-                                        intent.putExtra(SelectDevice.SELECTED_DEVICE, mDevice);
+                                                ViewStatusActivity.class);
+                                        intent.putExtra(ViewStatusActivity.SELECTED_DEVICE, mDevice);
                                         mContext.startActivity(intent);
-                                    }*/
+                                    }
                                 }
 
                                 @Override public void onAnimationStart(Animator animator) {}
@@ -77,6 +80,8 @@ class DeviceOnClickListener implements View.OnClickListener {
                                 @Override public void onAnimationRepeat(Animator animator) {}
                             }
                     );
+
         }
+        */
     }
 }

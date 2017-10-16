@@ -1,17 +1,17 @@
-package se.viltefjall.tekk.ermina.SelectBTDevice;
+package se.viltefjall.tekk.ermina.SelectDevice;
 
 import android.app.Activity;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.Window;
 
 import se.viltefjall.tekk.ermina.R;
-import se.viltefjall.tekk.ermina.common.BTDevices;
+import se.viltefjall.tekk.ermina.common.DummyDevices;
 
-public class SelectBTDevice extends Activity {
-    public static final String ID = "SelectBTDevice";
+public class SelectDeviceActivity extends Activity {
+    @SuppressWarnings("unused")
+    public static final String ID = "SelectDeviceActivity";
 
     RecyclerView               mRecyclerView;
     RecyclerView.LayoutManager mLayoutManager;
@@ -21,7 +21,7 @@ public class SelectBTDevice extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         getWindow().requestFeature(Window.FEATURE_CONTENT_TRANSITIONS);
-        setContentView(R.layout.activity_select_btdevice);
+        setContentView(R.layout.activity_select_device);
         setTitle(R.string.SelectBTDeviceTitle);
     }
 
@@ -40,8 +40,8 @@ public class SelectBTDevice extends Activity {
     }
 
     public void build() {
-        BTDevices devices = new BTDevices();
-        //DummyDevices devices = new DummyDevices();
+        //BTDevices devices = new BTDevices();
+        DummyDevices devices = new DummyDevices();
         mRecyclerView     = findViewById(R.id.RecyclerView);
         mLayoutManager    = new LinearLayoutManager(this);
         mDeviceAdapter    = new DeviceAdapter(devices, this, mRecyclerView);

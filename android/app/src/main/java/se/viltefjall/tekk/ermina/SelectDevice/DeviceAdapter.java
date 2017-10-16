@@ -1,4 +1,4 @@
-package se.viltefjall.tekk.ermina.SelectBTDevice;
+package se.viltefjall.tekk.ermina.SelectDevice;
 
 import android.content.Context;
 import android.support.v7.widget.CardView;
@@ -10,19 +10,19 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import se.viltefjall.tekk.ermina.R;
-import se.viltefjall.tekk.ermina.common.BTDevice;
-import se.viltefjall.tekk.ermina.common.BTDevices;
+import se.viltefjall.tekk.ermina.common.ErminaDevice;
+import se.viltefjall.tekk.ermina.common.ErminaDevices;
 
 class DeviceAdapter extends RecyclerView.Adapter<DeviceAdapter.ViewHolder> {
     @SuppressWarnings("unused")
     public static final String  ID = "DeviceAdapter";
 
-    private BTDevices    mDevices;
-    private Context      mContext;
-    private RecyclerView mRecyclerView;
+    private ErminaDevices mDevices;
+    private Context       mContext;
+    private RecyclerView  mRecyclerView;
 
 
-    DeviceAdapter(BTDevices devices, Context context, RecyclerView recyclerView) {
+    DeviceAdapter(ErminaDevices devices, Context context, RecyclerView recyclerView) {
         mDevices      = devices;
         mContext      = context;
         mRecyclerView = recyclerView;
@@ -57,7 +57,7 @@ class DeviceAdapter extends RecyclerView.Adapter<DeviceAdapter.ViewHolder> {
     @Override
     public void onBindViewHolder(final ViewHolder holder, final int position) {
         DeviceOnClickListener onClickListener;
-        final BTDevice        dev;
+        final ErminaDevice    dev;
 
         dev             = mDevices.get(position);
         onClickListener = new DeviceOnClickListener(mContext,

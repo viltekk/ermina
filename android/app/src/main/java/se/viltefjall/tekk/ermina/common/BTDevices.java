@@ -8,9 +8,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-public class BTDevices {
+public class BTDevices implements ErminaDevices {
     public static final String ID = "BTDevices";
-    private ArrayList<BTDevice> mDevices;
+    private ArrayList<ErminaDevice> mDevices;
 
     public BTDevices() {
         mDevices = new ArrayList<>();
@@ -27,11 +27,11 @@ public class BTDevices {
 
     }
 
-    public BTDevice get(int pos) {
+    public ErminaDevice get(int pos) {
         return mDevices.get(pos);
     }
 
-    public List<BTDevice> getDevices() {
+    public List<ErminaDevice> getDevices() {
         return mDevices;
     }
 

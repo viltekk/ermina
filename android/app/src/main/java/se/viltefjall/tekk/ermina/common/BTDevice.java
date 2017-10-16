@@ -14,7 +14,7 @@ import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.UUID;
 
-public class BTDevice {
+public class BTDevice implements Parcelable, ErminaDevice {
     public static final String  ID      = "BTDevice";
     private static final String BT_UUID = "00001101-0000-1000-8000-00805f9b34fb";
 
@@ -66,7 +66,7 @@ public class BTDevice {
         if(mSocket != null)       { mSocket.close();       }
     }
 
-    public boolean isconnected() {
+    public boolean isConnected() {
         return mSocket != null && mSocket.isConnected();
     }
 
