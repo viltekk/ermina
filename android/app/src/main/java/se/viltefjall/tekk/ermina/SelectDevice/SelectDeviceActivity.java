@@ -22,7 +22,7 @@ public class SelectDeviceActivity extends Activity {
         super.onCreate(savedInstanceState);
         getWindow().requestFeature(Window.FEATURE_CONTENT_TRANSITIONS);
         setContentView(R.layout.activity_select_device);
-        setTitle(R.string.SelectBTDeviceTitle);
+        setTitle(R.string.SelectDeviceTitle);
     }
 
     @Override

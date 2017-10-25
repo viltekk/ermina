@@ -4,6 +4,7 @@
         <attr name="outsideLimitColor" format="color" />
         <attr name="shadowColor" format="color" />
         <attr name="ringColor" format="color" />
+        <attr name="arrowColor" format="color" />
         <attr name="fromDegree" format="integer" />
         <attr name="toDegree" format="integer" />
         <attr name="gaugePenSize" format="integer" />

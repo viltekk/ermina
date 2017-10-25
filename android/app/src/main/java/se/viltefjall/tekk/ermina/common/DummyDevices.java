@@ -35,7 +35,7 @@ public class DummyDevices implements ErminaDevices {
 
     public void populate(RecyclerView.Adapter adapter) {
         for(int i = 1; i < 20; i++) {
-            mDevices.add(new DummyDevice("Hus " + i, "Fyndvägen " + (i*2)));
+            mDevices.add(new DummyDevice("bt device " + i, "address " + (i*2)));
             adapter.notifyItemInserted(mDevices.size()-1);
         }
     }

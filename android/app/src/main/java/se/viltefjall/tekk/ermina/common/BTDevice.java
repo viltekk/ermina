@@ -47,6 +47,46 @@ public class BTDevice implements Parcelable, ErminaDevice {
         return mAddr;
     }
 
+    @Override
+    public int getMoistureMin() {
+        return 0;
+    }
+
+    @Override
+    public int getMoistureMax() {
+        return 0;
+    }
+
+    @Override
+    public int getMoistureThrLow() {
+        return 0;
+    }
+
+    @Override
+    public int getMoistureThrHigh() {
+        return 0;
+    }
+
+    @Override
+    public int getWaterMin() {
+        return 0;
+    }
+
+    @Override
+    public int getWaterMax() {
+        return 0;
+    }
+
+    @Override
+    public int getMoisture() {
+        return 0;
+    }
+
+    @Override
+    public int getWater() {
+        return 0;
+    }
+
     public void connect() throws IOException {
         UUID uuid;
 

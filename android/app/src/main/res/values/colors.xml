@@ -3,5 +3,8 @@
     <color name="colorPrimary">#43cc61</color>
     <color name="colorPrimaryDark">#106b3c</color>
     <color name="colorAccent">#d75f0f</color>
-    <color name="colorSelectBTDeviceBackground">#ffffff</color>
+    <color name="btLogoBackground">#43cc61</color>
+    <color name="connectProgressStart">#43cc61</color>
+    <color name="moistureRingColor">#0bb4da</color>
+    <color name="moistureArrowColor">#c8ff2882</color>
 </resources>

@@ -39,6 +39,46 @@ public class DummyDevice implements ErminaDevice {
     }
 
     @Override
+    public int getMoistureMin() {
+        return 0;
+    }
+
+    @Override
+    public int getMoistureMax() {
+        return 100;
+    }
+
+    @Override
+    public int getMoistureThrLow() {
+        return 23;
+    }
+
+    @Override
+    public int getMoistureThrHigh() {
+        return 77;
+    }
+
+    @Override
+    public int getWaterMin() {
+        return 0;
+    }
+
+    @Override
+    public int getWaterMax() {
+        return 100;
+    }
+
+    @Override
+    public int getMoisture() {
+        return 43;
+    }
+
+    @Override
+    public int getWater() {
+        return 60;
+    }
+
+    @Override
     public void connect() throws IOException {
         btComm();
     }
