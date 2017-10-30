@@ -14,8 +14,8 @@ public class AnimationManager {
     private View mProgress;
 
     public AnimationManager(Activity activity) {
-        mMoisture = activity.findViewById(R.id.moistureViewTop);
-        mWater    = activity.findViewById(R.id.moistureViewBtm);
+        mMoisture = activity.findViewById(R.id.moistureView);
+        mWater    = activity.findViewById(R.id.waterView);
         mProgress = activity.findViewById(R.id.progress);
     }
 

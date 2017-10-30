@@ -11,14 +11,10 @@ import android.graphics.Point;
 import android.graphics.RectF;
 import android.support.v4.content.ContextCompat;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.View;
 
 import se.viltefjall.tekk.ermina.R;
 
-/**
- * TODO: document your custom view class.
- */
 public class MoistureView extends View {
 
     @SuppressWarnings("unused")
@@ -26,8 +22,8 @@ public class MoistureView extends View {
 
     // for drawing the view
     private Paint mPaintOuterRing;
-    private Paint mPaintOutsideLimit;
-    private Paint mPaintInsideLimit;
+    private Paint mPaintBackground;
+    private Paint mPaintForeground;
     private Paint mPaintArrow;
 
     private int   mFromDegree;
@@ -93,24 +89,24 @@ public class MoistureView extends View {
         mFromDegree   = a.getInt(R.styleable.MoistureView_fromDegree  ,   0);
         mToDegree     = a.getInt(R.styleable.MoistureView_toDegree    , 360);
 
-        mPaintInsideLimit = new Paint();
-        mPaintInsideLimit.setStrokeWidth(mGaugePenSize);
-        mPaintInsideLimit.setStyle(Paint.Style.STROKE);
-        mPaintInsideLimit.setStrokeCap(Paint.Cap.ROUND);
-        mPaintInsideLimit.setColor(
+        mPaintForeground = new Paint();
+        mPaintForeground.setStrokeWidth(mGaugePenSize);
+        mPaintForeground.setStyle(Paint.Style.STROKE);
+        mPaintForeground.setStrokeCap(Paint.Cap.ROUND);
+        mPaintForeground.setColor(
                 a.getColor(
-                        R.styleable.MoistureView_limitColor,
+                        R.styleable.MoistureView_foregroundColor,
                         ContextCompat.getColor(getContext(), R.color.colorPrimary)
                 )
         );
 
-        mPaintOutsideLimit = new Paint();
-        mPaintOutsideLimit.setStrokeWidth(mGaugePenSize);
-        mPaintOutsideLimit.setStyle(Paint.Style.STROKE);
-        mPaintOutsideLimit.setStrokeCap(Paint.Cap.ROUND);
-        mPaintOutsideLimit.setColor(
+        mPaintBackground = new Paint();
+        mPaintBackground.setStrokeWidth(mGaugePenSize);
+        mPaintBackground.setStyle(Paint.Style.STROKE);
+        mPaintBackground.setStrokeCap(Paint.Cap.ROUND);
+        mPaintBackground.setColor(
                 a.getColor(
-                        R.styleable.MoistureView_outsideLimitColor,
+                        R.styleable.MoistureView_backgroundColor,
                         Color.GRAY
                 )
         );
@@ -165,8 +161,6 @@ public class MoistureView extends View {
         } else {
             mInnerRadius = (int) (mRect.width()  + mGaugePenSize) / 2;
         }
-
-        //createArrow();
     }
 
     void createArrow(float v) {
@@ -268,7 +262,7 @@ public class MoistureView extends View {
                 mFromDegree,
                 mToDegree-mFromDegree,
                 false,
-                mPaintOutsideLimit
+                mPaintBackground
         );
 
         canvas.drawArc(
@@ -276,7 +270,7 @@ public class MoistureView extends View {
                 mRangeAngleMin,
                 mRangeAngleSweep,
                 false,
-                mPaintInsideLimit
+                mPaintForeground
         );
 
         canvas.drawPath(mPathArrow, mPaintArrow);

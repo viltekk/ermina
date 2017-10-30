@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="StatusView">
+        <attr name="foregroundColor" format="color" />
+        <attr name="backgroundColor" format="color" />
+        <attr name="ringColor" format="color" />
+        <attr name="fromDegree" format="integer" />
+        <attr name="toDegree" format="integer" />
+        <attr name="gaugePenSize" format="integer" />
+        <attr name="ringPenSize" format="integer" />
+        <attr name="capStyle" format="enum">
+            <enum name="BUTT" value="0" />
+            <enum name="ROUND" value="1" />
+        </attr>
+    </declare-styleable>
+
+    <declare-styleable name="MoistureView">
+        <attr name="foregroundColor" />
+        <attr name="backgroundColor" />
+        <attr name="ringColor" />
+        <attr name="fromDegree" />
+        <attr name="toDegree" />
+        <attr name="gaugePenSize" />
+        <attr name="ringPenSize" />
+        <attr name="capStyle" />
+        <attr name="arrowColor" format="color" />
+    </declare-styleable>
+
+    <declare-styleable name="WaterView" parent="StatusView">
+        <attr name="foregroundColor" />
+        <attr name="backgroundColor" />
+        <attr name="ringColor" />
+        <attr name="fromDegree" />
+        <attr name="toDegree" />
+        <attr name="gaugePenSize" />
+        <attr name="ringPenSize" />
+        <attr name="capStyle" />
+    </declare-styleable>
+</resources>

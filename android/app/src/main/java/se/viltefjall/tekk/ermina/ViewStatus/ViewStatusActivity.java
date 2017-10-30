@@ -1,12 +1,6 @@
 package se.viltefjall.tekk.ermina.ViewStatus;
 
 import android.app.Activity;
-import android.graphics.PorterDuff;
-import android.graphics.drawable.ColorDrawable;
-import android.graphics.drawable.Drawable;
-import android.graphics.drawable.GradientDrawable;
-import android.graphics.drawable.RippleDrawable;
-import android.graphics.drawable.ShapeDrawable;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -21,6 +15,7 @@ import se.viltefjall.tekk.ermina.common.ConnectTask;
 import se.viltefjall.tekk.ermina.common.ErminaDevice;
 import se.viltefjall.tekk.ermina.common.ErrorDialog;
 import se.viltefjall.tekk.ermina.common.MoistureView;
+import se.viltefjall.tekk.ermina.common.WaterView;
 
 public class ViewStatusActivity extends Activity {
 
@@ -65,20 +60,23 @@ public class ViewStatusActivity extends Activity {
         }
     }
 
+    @SuppressWarnings("unused")
     void tmp(View view) {
-        int v = (new Random()).nextInt(100) + 1;
-        MoistureView mv = (MoistureView) findViewById(R.id.moistureViewTop);
-        mv.setCur(v);
-    }
-
-    void tmp2(View view) {
         Random r = new Random();
-        int min, max;
+
+        // moisture
+        int min, max, v;
+        v   = r.nextInt(100) + 1;
         min = r.nextInt(50);
         max = r.nextInt(50) + 51;
-        Log.d(ID, "min, max = " + min + ", " + max);
-        MoistureView mv = (MoistureView) findViewById(R.id.moistureViewTop);
+        MoistureView mv = findViewById(R.id.moistureView);
         mv.setRange(min, max);
+        mv.setCur(v);
+
+        // water
+        int lvl = r.nextInt(100) + 1;
+        WaterView wv = findViewById(R.id.waterView);
+        wv.setWater(lvl);
     }
 
     @Override
