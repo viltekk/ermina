@@ -69,8 +69,9 @@
                 app:gaugePenSize="60"
                 app:backgroundColor="#d1d1d1"
                 app:ringPenSize="30"
-                app:ringColor="@color/moistureRingColor"
                 app:arrowColor="@color/moistureArrowColor"
+                app:ringColor="@color/statusRingColor"
+                app:iconColor="@color/moistureLevelColor"
                 app:toDegree="400"
                 app:fromDegree="140" />
 
@@ -88,16 +89,19 @@
                 android:elevation="5dp"
                 android:alpha="0"
                 android:visibility="visible"
-                app:fromDegree="140"
-                app:gaugePenSize="60"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintHorizontal_bias="0.0"
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintRight_toRightOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
+                app:fromDegree="140"
+                app:gaugePenSize="60"
                 app:foregroundColor="#1cb2e4"
                 app:backgroundColor="#d1d1d1"
                 app:ringPenSize="30"
+                app:ringColor="@color/statusRingColor"
+                app:iconColor="@color/waterLevelColor"
+                app:textSize="80"
                 app:toDegree="400" />
 
         </LinearLayout>

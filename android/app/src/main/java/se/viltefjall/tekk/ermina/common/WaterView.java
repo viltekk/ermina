@@ -6,8 +6,11 @@ import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Path;
 import android.graphics.RectF;
 import android.support.v4.content.ContextCompat;
+import android.text.StaticLayout;
+import android.text.TextPaint;
 import android.util.AttributeSet;
 import android.view.View;
 
@@ -30,12 +33,16 @@ public class WaterView extends View {
     private int   mGaugePenSize;
     private int   mRingPenSize;
     private int   mOuterRadius;
-    private int   mInnerRadius;
     private RectF mRect;
 
     // water values
-    private float mRangeAngleSweep;
-    private float mWaterLvl;
+    private float     mRangeAngleSweep;
+    private float     mWaterLvl;
+    private TextPaint mPaintText;
+
+    // icon
+    private Paint mPaintIcon;
+    private Path  mIcon;
 
     // animation
     long          mAnimDuration;
@@ -62,6 +69,7 @@ public class WaterView extends View {
                 attrs, R.styleable.WaterView, defStyle, 0);
 
         mRect         = new RectF();
+        mIcon         = new Path();
         mWaterLvl     = 0;
         mAnimDuration = 1000;
 
@@ -89,6 +97,33 @@ public class WaterView extends View {
                 a.getColor(
                         R.styleable.WaterView_backgroundColor,
                         Color.GRAY
+                )
+        );
+
+        int textSize    = a.getInt(R.styleable.WaterView_textSize, 80);
+        int textPenSize = a.getInt(R.styleable.WaterView_textPenSize, 10);
+
+        mPaintText = new TextPaint();
+        mPaintText.setStrokeWidth(textPenSize);
+        mPaintText.setStyle(Paint.Style.FILL);
+        mPaintText.setStrokeCap(Paint.Cap.ROUND);
+        mPaintText.setTextAlign(Paint.Align.CENTER);
+        mPaintText.setTextSize(textSize * getResources().getDisplayMetrics().density);
+        mPaintText.setColor(
+                a.getColor(
+                        R.styleable.WaterView_textColor,
+                        Color.WHITE
+                )
+        );
+
+        mPaintIcon = new Paint();
+        mPaintIcon.setStrokeWidth(textPenSize);
+        mPaintIcon.setStyle(Paint.Style.FILL);
+        mPaintIcon.setStrokeCap(Paint.Cap.ROUND);
+        mPaintIcon.setColor(
+                a.getColor(
+                        R.styleable.WaterView_iconColor,
+                        Color.WHITE
                 )
         );
 
@@ -124,11 +159,7 @@ public class WaterView extends View {
         int b = mContentHeight/2 + d;
         mRect.set(l, t, r, b);
 
-        if(mRect.width() > mRect.height()) {
-            mInnerRadius = (int) (mRect.height() + mGaugePenSize) / 2;
-        } else {
-            mInnerRadius = (int) (mRect.width()  + mGaugePenSize) / 2;
-        }
+        createIcon(mContentWidth, mContentHeight);
     }
 
     public void setWater(int lvl) {
@@ -136,7 +167,7 @@ public class WaterView extends View {
             mAnimator.cancel();
         }
 
-        long duration = (long)(mAnimDuration * ((float)Math.abs(mWaterLvl-lvl))/100f);
+        long duration = (long)(mAnimDuration * (Math.abs(mWaterLvl-lvl))/100f);
         mAnimator = ValueAnimator.ofFloat(mWaterLvl, lvl);
         mAnimator.setDuration(duration);
         mAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
@@ -153,6 +184,34 @@ public class WaterView extends View {
 
     private void createWater(float v) {
         mRangeAngleSweep = v * ((float)(mToDegree-mFromDegree)/100f);
+        mWaterLvl = v;
+    }
+
+    private void createIcon(int w, int h) {
+        mIcon.reset();
+        //mIcon.moveTo(6*(w/16), 5*(h/16));
+        //mIcon.lineTo(6*(w/16), 7*(h/16));
+        //mIcon.lineTo(10*(w/16), 7*(h/16));
+        //mIcon.lineTo(10*(w/16), 5*(h/16));
+
+        for(int i = 6; i < 10; i++) {
+            mIcon.moveTo(i*(w/16), 5.5f*(h/16));
+            mIcon.arcTo(
+                    new RectF(
+                            i*(w/16),
+                            5*(h/16),
+                            (i+1)*(w/16),
+                            6*(h/16)
+                    ),
+                    180f,
+                    -180f
+            );
+        }
+        mIcon.lineTo(10*(w/16), 7*(h/16));
+        mIcon.lineTo(6*(w/16), 7*(h/16));
+        mIcon.lineTo(6*(w/16), 5.5f*(h/16));
+        mIcon.moveTo(6*(w/16), 5.5f*(h/16));
+        mIcon.close();
     }
 
     @Override
@@ -182,5 +241,14 @@ public class WaterView extends View {
                 false,
                 mPaintForeground
         );
+
+        canvas.drawText(
+                String.valueOf((int)mWaterLvl),
+                mContentWidth/2,
+                3*(mContentHeight/4),
+                mPaintText
+        );
+
+        canvas.drawPath(mIcon, mPaintIcon);
     }
 }

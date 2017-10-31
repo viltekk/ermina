@@ -66,9 +66,9 @@ public class ViewStatusActivity extends Activity {
 
         // moisture
         int min, max, v;
-        v   = r.nextInt(100) + 1;
         min = r.nextInt(50);
         max = r.nextInt(50) + 51;
+        v   = min + r.nextInt(max-min);
         MoistureView mv = findViewById(R.id.moistureView);
         mv.setRange(min, max);
         mv.setCur(v);

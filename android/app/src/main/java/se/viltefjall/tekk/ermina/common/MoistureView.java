@@ -10,6 +10,7 @@ import android.graphics.Path;
 import android.graphics.Point;
 import android.graphics.RectF;
 import android.support.v4.content.ContextCompat;
+import android.text.TextPaint;
 import android.util.AttributeSet;
 import android.view.View;
 
@@ -44,11 +45,16 @@ public class MoistureView extends View {
     private int   mAngle;
 
     // moisture values
-    private float mMin;
-    private float mMax;
-    private float mCur;
-    private float mRangeAngleMin;
-    private float mRangeAngleSweep;
+    private float     mMin;
+    private float     mMax;
+    private float     mCur;
+    private float     mRangeAngleMin;
+    private float     mRangeAngleSweep;
+    private TextPaint mPaintText;
+
+    // icon
+    private Paint mPaintIcon;
+    private Path  mIcon;
 
     // animation
     long          mAnimDuration;
@@ -75,6 +81,7 @@ public class MoistureView extends View {
         final TypedArray a = getContext().obtainStyledAttributes(
                 attrs, R.styleable.MoistureView, defStyle, 0);
 
+        mIcon = new Path();
         mRect = new RectF();
         mPtr0 = new Point();
         mPtr1 = new Point();
@@ -111,6 +118,22 @@ public class MoistureView extends View {
                 )
         );
 
+        int textSize    = a.getInt(R.styleable.MoistureView_textSize, 80);
+        int textPenSize = a.getInt(R.styleable.MoistureView_textPenSize, 10);
+
+        mPaintText = new TextPaint();
+        mPaintText.setStrokeWidth(textPenSize);
+        mPaintText.setStyle(Paint.Style.FILL);
+        mPaintText.setStrokeCap(Paint.Cap.ROUND);
+        mPaintText.setTextAlign(Paint.Align.CENTER);
+        mPaintText.setTextSize(textSize * getResources().getDisplayMetrics().density);
+        mPaintText.setColor(
+                a.getColor(
+                        R.styleable.MoistureView_textColor,
+                        Color.WHITE
+                )
+        );
+
         mPaintOuterRing = new Paint();
         mPaintOuterRing.setStrokeWidth(mRingPenSize);
         mPaintOuterRing.setStyle(Paint.Style.STROKE);
@@ -119,6 +142,18 @@ public class MoistureView extends View {
                     R.styleable.MoistureView_ringColor,
                     ContextCompat.getColor(getContext(), R.color.colorAccent)
             )
+        );
+
+        mPaintIcon = new Paint();
+        mPaintIcon.setStrokeWidth(textPenSize);
+        mPaintIcon.setStyle(Paint.Style.FILL);
+        mPaintIcon.setStrokeCap(Paint.Cap.ROUND);
+        mPaintIcon.setStrokeJoin(Paint.Join.ROUND);
+        mPaintIcon.setColor(
+                a.getColor(
+                        R.styleable.MoistureView_iconColor,
+                        Color.WHITE
+                )
         );
 
         mPathArrow  = new Path();
@@ -161,6 +196,8 @@ public class MoistureView extends View {
         } else {
             mInnerRadius = (int) (mRect.width()  + mGaugePenSize) / 2;
         }
+
+        createIcon(mContentWidth, mContentHeight);
     }
 
     void createArrow(float v) {
@@ -197,6 +234,8 @@ public class MoistureView extends View {
         mPathArrow.lineTo(mPtr2.x, mPtr2.y);
         mPathArrow.lineTo(mPtr1.x, mPtr1.y);
         mPathArrow.close();
+
+        mCur = v;
     }
 
     void createRange(float v) {
@@ -246,6 +285,26 @@ public class MoistureView extends View {
         mCur = cur;
     }
 
+    private void createIcon(int w, int h) {
+        mIcon.reset();
+        mIcon.moveTo(w/2, 4.5f*h/16);
+        mIcon.lineTo(14.5f*w/32, 6*h/16);
+        mIcon.moveTo(w/2, 4.5f*h/16);
+        mIcon.lineTo(17.5f*w/32, 6*h/16);
+        mIcon.arcTo(
+                new RectF(
+                        14.5f*w/32,
+                        5.5f*h/16,
+                        17.5f*w/32,
+                        7*h/16
+                ),
+                0,
+                180
+        );
+        mIcon.lineTo(14.5f*w/32, 6*h/16);
+        mIcon.close();
+    }
+
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
@@ -274,5 +333,13 @@ public class MoistureView extends View {
         );
 
         canvas.drawPath(mPathArrow, mPaintArrow);
+        canvas.drawPath(mIcon, mPaintIcon);
+
+        canvas.drawText(
+                String.valueOf((int)mCur),
+                mContentWidth/2,
+                3*(mContentHeight/4),
+                mPaintText
+        );
     }
 }
