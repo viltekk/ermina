@@ -119,16 +119,17 @@
                 android:layout_width="70dp"
                 android:layout_height="70dp"
                 android:background="@drawable/round_hover_btn"
-                android:clickable="true"
-                android:onClick="tmp"
+                android:alpha="0"
+                android:clickable="false"
+                android:onClick="reload"
                 android:elevation="5dp" />
 
             <ImageView
                 android:id="@+id/settings"
                 android:layout_width="70dp"
                 android:layout_height="70dp"
-                android:clickable="true"
-                android:onClick="tmp"
+                android:alpha="0"
+                android:clickable="false"
                 android:layout_below="@+id/reload"
                 android:layout_marginTop="32dp"
                 android:background="@drawable/round_hover_btn"

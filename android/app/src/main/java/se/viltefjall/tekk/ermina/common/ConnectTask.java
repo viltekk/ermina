@@ -17,9 +17,7 @@ public abstract class ConnectTask extends AsyncTask<ErminaDevice, Integer, Conne
         ConnectResult res = new ConnectResult();
 
         if(erminaDevices.length != 1) {
-            res.mException = new Exception(
-                    Resources.getSystem().getString(R.string.ConnectError)
-            );
+            res.mException = new Exception("failed to connect");
         } else {
             try {
                 erminaDevices[0].connect();

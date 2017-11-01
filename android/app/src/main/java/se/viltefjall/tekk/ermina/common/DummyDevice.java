@@ -3,7 +3,10 @@ package se.viltefjall.tekk.ermina.common;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.os.SystemClock;
+import android.util.Log;
+
 import java.io.IOException;
+import java.util.Random;
 
 public class DummyDevice implements ErminaDevice {
     @SuppressWarnings("unused")
@@ -12,11 +15,15 @@ public class DummyDevice implements ErminaDevice {
     private String mName;
     private String mAddress;
     private long   mBtCommTime;
+    private Random mRng;
+    private int    mThrLo;
+    private int    mThrHi;
 
     public DummyDevice(Parcel parcel) {
         mName       = parcel.readString();
         mAddress    = parcel.readString();
-        mBtCommTime = 1000;
+        mBtCommTime = 300;
+        mRng        = new Random();
     }
 
     public DummyDevice(String name, String address) {
@@ -50,12 +57,16 @@ public class DummyDevice implements ErminaDevice {
 
     @Override
     public int getMoistureThrLow() {
-        return 23;
+        btComm();
+        mThrLo = mRng.nextInt(50);
+        return mThrLo;
     }
 
     @Override
     public int getMoistureThrHigh() {
-        return 77;
+        btComm();
+        mThrHi = mRng.nextInt(51) + 50;
+        return mThrHi;
     }
 
     @Override
@@ -70,12 +81,14 @@ public class DummyDevice implements ErminaDevice {
 
     @Override
     public int getMoisture() {
-        return 43;
+        btComm();
+        return mThrLo + mRng.nextInt(mThrHi - mThrLo);
     }
 
     @Override
     public int getWater() {
-        return 60;
+        btComm();
+        return mRng.nextInt(101);
     }
 
     @Override

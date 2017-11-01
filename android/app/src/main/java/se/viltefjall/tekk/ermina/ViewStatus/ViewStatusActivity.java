@@ -7,7 +7,7 @@ import android.view.View;
 import android.view.Window;
 
 import java.io.IOException;
-import java.util.Random;
+import java.lang.ref.WeakReference;
 
 import se.viltefjall.tekk.ermina.R;
 import se.viltefjall.tekk.ermina.common.ConnectResult;
@@ -25,6 +25,10 @@ public class ViewStatusActivity extends Activity {
     AnimationManager mAnimMgr;
     ErminaDevice     mDevice;
     ErrorDialog      mError;
+    int              mThrLo;
+    int              mThrHi;
+    int              mMoist;
+    int              mWater;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,51 +36,27 @@ public class ViewStatusActivity extends Activity {
         getWindow().requestFeature(Window.FEATURE_CONTENT_TRANSITIONS);
         setContentView(R.layout.activity_view_status);
         build();
+        setTitle("Connecting to " + mDevice.getName());
+        connect();
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-
-        if(!mDevice.isConnected()) {
-            setTitle("Connecting to " + mDevice.getName());
-            mAnimMgr.hideStatus();
-            mAnimMgr.showConnecting();
-
-            ConnectTask ct = new ConnectTask() {
-                @Override
-                public void onConnectComplete(ConnectResult result) {
-                    if(result.mException == null) {
-                        setTitle(mDevice.getName() + " @ " + mDevice.getAddress());
-                        mAnimMgr.hideConnecting();
-                        mAnimMgr.showStatus();
-                    } else {
-                        String e = getString(R.string.failedConnect) + " " + mDevice.getName();
-                        mError.displayError(e, true);
-                    }
-                }
-            };
-            ct.execute(mDevice);
-        }
+    public void reload(View view) {
+        setTitle("Reloading " + mDevice.getName());
+        mAnimMgr.hideStatus();
+        mAnimMgr.showConnecting();
     }
 
-    @SuppressWarnings("unused")
-    void tmp(View view) {
-        Random r = new Random();
+    void connect() {
+        new ViewStatusConnectTask(this).execute(mDevice);
+    }
 
-        // moisture
-        int min, max, v;
-        min = r.nextInt(50);
-        max = r.nextInt(50) + 51;
-        v   = min + r.nextInt(max-min);
+    void setValues() {
         MoistureView mv = findViewById(R.id.moistureView);
-        mv.setRange(min, max);
-        mv.setCur(v);
+        WaterView    wv = findViewById(R.id.waterView);
 
-        // water
-        int lvl = r.nextInt(100) + 1;
-        WaterView wv = findViewById(R.id.waterView);
-        wv.setWater(lvl);
+        mv.setRange(mThrLo, mThrHi);
+        mv.setCur(mMoist);
+        wv.setWater(mWater);
     }
 
     @Override
@@ -94,5 +74,32 @@ public class ViewStatusActivity extends Activity {
         mDevice  = getIntent().getParcelableExtra(SELECTED_DEVICE);
         mAnimMgr = new AnimationManager(this);
         mError   = new ErrorDialog(this);
+    }
+
+    private static class ViewStatusConnectTask extends ConnectTask {
+        private WeakReference<ViewStatusActivity> mActivity;
+
+        ViewStatusConnectTask(ViewStatusActivity activity) {
+            mActivity = new WeakReference<>(activity);
+        }
+
+        @Override
+        public void onConnectComplete(ConnectResult result) {
+            ViewStatusActivity a = mActivity.get();
+            if(result.mException == null) {
+                a.setTitle(a.mDevice.getName() + " @ " + a.mDevice.getAddress());
+
+                a.mThrLo = a.mDevice.getMoistureThrLow();
+                a.mThrHi = a.mDevice.getMoistureThrHigh();
+                a.mMoist = a.mDevice.getMoisture();
+                a.mWater = a.mDevice.getWater();
+
+                a.mAnimMgr.hideConnecting();
+                a.mAnimMgr.showStatus();
+            } else {
+                String e = a.getString(R.string.failedConnect) + " " + a.mDevice.getName();
+                a.mError.displayError(e, true);
+            }
+        }
     }
 }
