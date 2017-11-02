@@ -1,11 +1,8 @@
 package se.viltefjall.tekk.ermina.common;
 
-import android.content.res.Resources;
 import android.os.AsyncTask;
 
 import java.io.IOException;
-
-import se.viltefjall.tekk.ermina.R;
 
 public abstract class ConnectTask extends AsyncTask<ErminaDevice, Integer, ConnectResult>
     implements ConnectIF {
@@ -34,5 +31,5 @@ public abstract class ConnectTask extends AsyncTask<ErminaDevice, Integer, Conne
     }
 
     @Override
-    public abstract void onConnectComplete(se.viltefjall.tekk.ermina.common.ConnectResult result);
+    public abstract void onConnectComplete(ConnectResult result);
 }

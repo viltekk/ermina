@@ -1,6 +1,8 @@
 package se.viltefjall.tekk.ermina.ViewStatus;
 
 import android.app.Activity;
+import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -10,6 +12,7 @@ import java.io.IOException;
 import java.lang.ref.WeakReference;
 
 import se.viltefjall.tekk.ermina.R;
+import se.viltefjall.tekk.ermina.SelectPlant.SelectPlantActivity;
 import se.viltefjall.tekk.ermina.common.ConnectResult;
 import se.viltefjall.tekk.ermina.common.ConnectTask;
 import se.viltefjall.tekk.ermina.common.ErminaDevice;
@@ -36,18 +39,27 @@ public class ViewStatusActivity extends Activity {
         getWindow().requestFeature(Window.FEATURE_CONTENT_TRANSITIONS);
         setContentView(R.layout.activity_view_status);
         build();
-        setTitle("Connecting to " + mDevice.getName());
-        connect();
+        setTitle(mDevice.getName() + " @ " + mDevice.getAddress());
+        connectAndReload();
     }
 
     public void reload(View view) {
-        setTitle("Reloading " + mDevice.getName());
         mAnimMgr.hideStatus();
         mAnimMgr.showConnecting();
     }
 
-    void connect() {
-        new ViewStatusConnectTask(this).execute(mDevice);
+    void connectAndReload() {
+        if(!mDevice.isConnected()) {
+            new ViewStatusConnectTask(this).execute(mDevice);
+        } else {
+            new GetDataTask(this).execute(mDevice);
+        }
+    }
+
+    public void settings(View view) {
+        Intent intent = new Intent(this, SelectPlantActivity.class);
+        intent.putExtra(SelectPlantActivity.SELECTED_DEVICE, mDevice);
+        startActivity(intent);
     }
 
     void setValues() {
@@ -87,19 +99,66 @@ public class ViewStatusActivity extends Activity {
         public void onConnectComplete(ConnectResult result) {
             ViewStatusActivity a = mActivity.get();
             if(result.mException == null) {
-                a.setTitle(a.mDevice.getName() + " @ " + a.mDevice.getAddress());
-
-                a.mThrLo = a.mDevice.getMoistureThrLow();
-                a.mThrHi = a.mDevice.getMoistureThrHigh();
-                a.mMoist = a.mDevice.getMoisture();
-                a.mWater = a.mDevice.getWater();
-
-                a.mAnimMgr.hideConnecting();
-                a.mAnimMgr.showStatus();
+                new GetDataTask(a).execute(a.mDevice);
             } else {
                 String e = a.getString(R.string.failedConnect) + " " + a.mDevice.getName();
                 a.mError.displayError(e, true);
             }
         }
+    }
+
+    private static class GetDataTask extends AsyncTask<ErminaDevice, Integer, DataResult> {
+        private WeakReference<ViewStatusActivity> mActivity;
+
+        GetDataTask(ViewStatusActivity activity) {
+            mActivity = new WeakReference<>(activity);
+        }
+
+        @Override
+        protected DataResult doInBackground(ErminaDevice... erminaDevices) {
+            DataResult res = new DataResult();
+            res.mException = null;
+
+            if(erminaDevices.length != 1) {
+                res.mException = new Exception("failed to connectAndReload");
+            } else {
+                try {
+                    res.mThrHi = erminaDevices[0].getMoistureThrHigh();
+                    res.mThrLo = erminaDevices[0].getMoistureThrLow();
+                    res.mWater = erminaDevices[0].getWater();
+                    res.mMoist = erminaDevices[0].getMoisture();
+                } catch (Exception e) {
+                    res.mException = e;
+                }
+            }
+
+            return res;
+        }
+
+        @Override
+        protected void onPostExecute(DataResult result) {
+            ViewStatusActivity a = mActivity.get();
+
+            if(result.mException == null) {
+                a.mThrHi = result.mThrHi;
+                a.mThrLo = result.mThrLo;
+                a.mWater = result.mWater;
+                a.mMoist = result.mMoist;
+
+                a.mAnimMgr.hideConnecting();
+                a.mAnimMgr.showStatus();
+            } else {
+                String e = "failed to get values";
+                a.mError.displayError(e, true);
+            }
+        }
+    }
+
+    private static class DataResult {
+        Exception mException;
+        int mThrHi;
+        int mThrLo;
+        int mWater;
+        int mMoist;
     }
 }

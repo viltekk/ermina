@@ -1,4 +1,4 @@
-package se.viltefjall.tekk.ermina.SelectDevice;
+package se.viltefjall.tekk.ermina.SelectPlant;
 
 import android.content.Context;
 import android.support.v7.widget.CardView;
