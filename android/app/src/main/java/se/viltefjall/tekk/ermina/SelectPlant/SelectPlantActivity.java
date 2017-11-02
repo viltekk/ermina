@@ -1,4 +1,4 @@
-package se.viltefjall.tekk.ermina.SelectDevice;
+package se.viltefjall.tekk.ermina.SelectPlant;
 
 import android.app.Activity;
 import android.os.Bundle;
@@ -9,9 +9,10 @@ import android.view.Window;
 import se.viltefjall.tekk.ermina.R;
 import se.viltefjall.tekk.ermina.common.DummyDevices;
 
-public class SelectDeviceActivity extends Activity {
+public class SelectPlantActivity extends Activity {
     @SuppressWarnings("unused")
-    public static final String ID = "SelectPlantActivity";
+    public static final String SELECTED_DEVICE = "se.viltefjall.tekk.ermina.SELECTED_DEVICE";
+    public static final String ID              = "SelectPlantActivity";
 
     RecyclerView               mRecyclerView;
     RecyclerView.LayoutManager mLayoutManager;
@@ -21,8 +22,8 @@ public class SelectDeviceActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         getWindow().requestFeature(Window.FEATURE_CONTENT_TRANSITIONS);
-        setContentView(R.layout.activity_select_device);
-        setTitle(R.string.SelectDeviceTitle);
+        setContentView(R.layout.activity_select_plant);
+        setTitle(R.string.SelectPlantTitle);
     }
 
     @Override

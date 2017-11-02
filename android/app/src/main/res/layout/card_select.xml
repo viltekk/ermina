@@ -12,12 +12,12 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
 
-            <se.viltefjall.tekk.ermina.SelectDevice.SquareImageView
+            <se.viltefjall.tekk.ermina.common.SquareImageView
                 android:id="@+id/devImg"
                 android:layout_width="wrap_content"
                 android:layout_height="0dp"
                 android:adjustViewBounds="false"
-                android:background="@color/colorPrimaryDark"
+                android:background="@color/colorPrimary"
                 android:cropToPadding="false"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintRight_toRightOf="parent"

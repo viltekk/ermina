@@ -3,4 +3,5 @@
     <string name="ConnectError">Only allowed to connect to one device</string>
     <string name="failedConnect">Failed connecting to device</string>
     <string name="SelectDeviceTitle">Select Bluetooth Device</string>
+    <string name="SelectPlantTitle">Select plant configuration</string>
 </resources>

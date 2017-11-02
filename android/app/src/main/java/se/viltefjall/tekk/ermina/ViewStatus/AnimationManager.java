@@ -80,7 +80,7 @@ class AnimationManager {
                 if(what == SHOW) {
                     mActivity.setValues();
                 } else {
-                    mActivity.connect();
+                    mActivity.connectAndReload();
                 }
             }
         });

@@ -1,4 +1,4 @@
-package se.viltefjall.tekk.ermina.SelectDevice;
+package se.viltefjall.tekk.ermina.common;
 
 import android.content.Context;
 import android.support.annotation.Nullable;

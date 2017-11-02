@@ -30,6 +30,15 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".SelectDevice.SelectDeviceActivity" />
         </activity>
+        <activity
+            android:name=".SelectPlant.SelectPlantActivity"
+            android:theme="@style/AppTheme"
+            android:configChanges="orientation|keyboardHidden"
+            android:screenOrientation="portrait">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".ViewStatus.ViewStatusActivity" />
+        </activity>
     </application>
 
 </manifest>
