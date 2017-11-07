@@ -1,22 +1,122 @@
 <plants>
-    <plant>
-        <name>Orkide</name>
-        <latin>Bleh bleh bleh</latin>
-        <lo>43</lo>
-        <hi>76</hi>
-    </plant>
-
-    <plant>
-        <name>Fikus</name>
-        <latin>Bleh bleh bleh</latin>
-        <lo>23</lo>
-        <hi>56</hi>
-    </plant>
-
-    <plant>
-        <name>Kaktus</name>
-        <latin>Bleh bleh bleh</latin>
-        <lo>33</lo>
-        <hi>94</hi>
-    </plant>
+	<plant>
+		<name>Plant 1</name>
+		<latin>Plantus dumminus 1</latin>
+		<hi>20</hi>
+		<lo>7</lo>
+	<plant>
+	<plant>
+		<name>Plant 2</name>
+		<latin>Plantus dumminus 2</latin>
+		<hi>90</hi>
+		<lo>45</lo>
+	<plant>
+	<plant>
+		<name>Plant 3</name>
+		<latin>Plantus dumminus 3</latin>
+		<hi>37</hi>
+		<lo>1</lo>
+	<plant>
+	<plant>
+		<name>Plant 4</name>
+		<latin>Plantus dumminus 4</latin>
+		<hi>47</hi>
+		<lo>42</lo>
+	<plant>
+	<plant>
+		<name>Plant 5</name>
+		<latin>Plantus dumminus 5</latin>
+		<hi>16</hi>
+		<lo>12</lo>
+	<plant>
+	<plant>
+		<name>Plant 6</name>
+		<latin>Plantus dumminus 6</latin>
+		<hi>29</hi>
+		<lo>4</lo>
+	<plant>
+	<plant>
+		<name>Plant 7</name>
+		<latin>Plantus dumminus 7</latin>
+		<hi>56</hi>
+		<lo>38</lo>
+	<plant>
+	<plant>
+		<name>Plant 8</name>
+		<latin>Plantus dumminus 8</latin>
+		<hi>49</hi>
+		<lo>27</lo>
+	<plant>
+	<plant>
+		<name>Plant 9</name>
+		<latin>Plantus dumminus 9</latin>
+		<hi>38</hi>
+		<lo>33</lo>
+	<plant>
+	<plant>
+		<name>Plant 10</name>
+		<latin>Plantus dumminus 10</latin>
+		<hi>78</hi>
+		<lo>48</lo>
+	<plant>
+	<plant>
+		<name>Plant 11</name>
+		<latin>Plantus dumminus 11</latin>
+		<hi>58</hi>
+		<lo>26</lo>
+	<plant>
+	<plant>
+		<name>Plant 12</name>
+		<latin>Plantus dumminus 12</latin>
+		<hi>57</hi>
+		<lo>28</lo>
+	<plant>
+	<plant>
+		<name>Plant 13</name>
+		<latin>Plantus dumminus 13</latin>
+		<hi>86</hi>
+		<lo>37</lo>
+	<plant>
+	<plant>
+		<name>Plant 14</name>
+		<latin>Plantus dumminus 14</latin>
+		<hi>85</hi>
+		<lo>36</lo>
+	<plant>
+	<plant>
+		<name>Plant 15</name>
+		<latin>Plantus dumminus 15</latin>
+		<hi>34</hi>
+		<lo>11</lo>
+	<plant>
+	<plant>
+		<name>Plant 16</name>
+		<latin>Plantus dumminus 16</latin>
+		<hi>74</hi>
+		<lo>38</lo>
+	<plant>
+	<plant>
+		<name>Plant 17</name>
+		<latin>Plantus dumminus 17</latin>
+		<hi>27</hi>
+		<lo>20</lo>
+	<plant>
+	<plant>
+		<name>Plant 18</name>
+		<latin>Plantus dumminus 18</latin>
+		<hi>54</hi>
+		<lo>27</lo>
+	<plant>
+	<plant>
+		<name>Plant 19</name>
+		<latin>Plantus dumminus 19</latin>
+		<hi>8</hi>
+		<lo>7</lo>
+	<plant>
+	<plant>
+		<name>Plant 20</name>
+		<latin>Plantus dumminus 20</latin>
+		<hi>46</hi>
+		<lo>30</lo>
+	<plant>
 </plants>

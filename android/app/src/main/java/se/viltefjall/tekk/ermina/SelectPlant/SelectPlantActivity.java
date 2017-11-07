@@ -4,7 +4,10 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.Window;
+
+import java.io.IOException;
 
 import se.viltefjall.tekk.ermina.R;
 import se.viltefjall.tekk.ermina.common.ErrorDialog;
@@ -22,7 +25,6 @@ public class SelectPlantActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         getWindow().requestFeature(Window.FEATURE_CONTENT_TRANSITIONS);
-        setContentView(R.layout.activity_select_plant);
         setTitle(R.string.SelectPlantTitle);
         mError = new ErrorDialog(this);
 
@@ -30,10 +32,18 @@ public class SelectPlantActivity extends Activity {
         (new DownloadXmlTask(this)).execute(parser);
     }
 
+    @Override
+    protected void onStop() {
+        super.onStop();
+        Log.d(ID, "onStop");
+    }
+
     void build(Plants plants) {
-        mRecyclerView     = findViewById(R.id.RecyclerView);
-        mLayoutManager    = new LinearLayoutManager(this);
-        mPlantAdapter     = new PlantAdapter(plants, this, mRecyclerView);
+        setContentView(R.layout.activity_select_plant);
+
+        mRecyclerView  = findViewById(R.id.RecyclerView);
+        mLayoutManager = new LinearLayoutManager(this);
+        mPlantAdapter  = new PlantAdapter(plants, this, mRecyclerView);
 
         mRecyclerView.setHasFixedSize(true);
         mRecyclerView.setLayoutManager(mLayoutManager);

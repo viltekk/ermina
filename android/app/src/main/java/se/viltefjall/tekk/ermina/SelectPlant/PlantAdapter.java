@@ -64,7 +64,7 @@ class PlantAdapter extends RecyclerView.Adapter<PlantAdapter.ViewHolder> {
 
         holder.mDevName.setText(plant.mName);
         holder.mDevAddr.setText(plant.mLatinName);
-        holder.mDevImg.setImageResource(android.R.drawable.stat_sys_data_bluetooth);
+        holder.mDevImg.setImageResource(R.mipmap.plant);
         holder.mDevImg.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
         holder.mCardView.setOnClickListener(onClickListener);
     }
