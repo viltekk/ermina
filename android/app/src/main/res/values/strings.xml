@@ -5,7 +5,7 @@
     <string name="SelectDeviceTitle">Select Bluetooth Device</string>
     <string name="SelectPlantTitle">Select plant configuration</string>
     <string name="PlantsURL">
-        https://raw.githubusercontent.com/viltekk/ermina/master/android/app/src/main/java/se/viltefjall/tekk/ermina/SelectPlant/plants.xml
+        https://raw.githubusercontent.com/viltekk/ermina/master/android/app/src/main/java/se/viltefjall/tekk/ermina/plantdb/plants.xml
     </string>
     <string name="buttonCustom">Custom configuration</string>
 </resources>
