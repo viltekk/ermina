@@ -2,21 +2,21 @@
     <plant>
         <name>Orkide</name>
         <latin>Bleh bleh bleh</latin>
-        <threshold-lo>43</threshold-lo>
-        <threshold-hi>76</threshold-hi>
+        <lo>43</lo>
+        <hi>76</hi>
     </plant>
 
     <plant>
         <name>Fikus</name>
         <latin>Bleh bleh bleh</latin>
-        <threshold-lo>23</threshold-lo>
-        <threshold-hi>56</threshold-hi>
+        <lo>23</lo>
+        <hi>56</hi>
     </plant>
 
     <plant>
         <name>Kaktus</name>
         <latin>Bleh bleh bleh</latin>
-        <threshold-lo>33</threshold-lo>
-        <threshold-hi>94</threshold-hi>
+        <lo>33</lo>
+        <hi>94</hi>
     </plant>
 </plants>
