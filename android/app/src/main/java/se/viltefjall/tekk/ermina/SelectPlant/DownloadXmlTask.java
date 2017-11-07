@@ -37,7 +37,7 @@ public class DownloadXmlTask extends AsyncTask<PlantsXMLParser, Integer, Plants>
         if(result != null) {
             a.build(result);
         } else {
-            a.mError.displayError("Failed to get plants", true);
+            a.mError.displayError("Failed to get plants", false);
         }
     }
 }
