@@ -4,4 +4,8 @@
     <string name="failedConnect">Failed connecting to device</string>
     <string name="SelectDeviceTitle">Select Bluetooth Device</string>
     <string name="SelectPlantTitle">Select plant configuration</string>
+    <string name="PlantsURL">
+        https://raw.githubusercontent.com/viltekk/ermina/master/android/app/src/main/java/se/viltefjall/tekk/ermina/SelectPlant/plants.xml
+    </string>
+    <string name="buttonCustom">Custom configuration</string>
 </resources>

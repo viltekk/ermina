@@ -1,12 +1,18 @@
 package se.viltefjall.tekk.ermina.SelectPlant;
 
-/**
- * Created by danial on 2017-11-03.
- */
-
-public class Plant {
+class Plant {
     String mName;
     String mLatinName;
     int    mThrHi;
     int    mThrLo;
+
+    Plant(String name,
+                 String latinName,
+                 int thrHi,
+                 int thrLo) {
+        mName      = name;
+        mLatinName = latinName;
+        mThrHi     = thrHi;
+        mThrLo     = thrLo;
+    }
 }

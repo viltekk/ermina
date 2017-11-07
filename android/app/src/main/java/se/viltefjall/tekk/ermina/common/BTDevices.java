@@ -24,7 +24,6 @@ public class BTDevices implements ErminaDevices {
             mDevices.add(new BTDevice(dev.getName(), dev.getAddress(), dev));
             adapter.notifyItemInserted(mDevices.size()-1);
         }
-
     }
 
     public ErminaDevice get(int pos) {

@@ -10,20 +10,18 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import se.viltefjall.tekk.ermina.R;
-import se.viltefjall.tekk.ermina.common.ErminaDevice;
-import se.viltefjall.tekk.ermina.common.ErminaDevices;
 
-class DeviceAdapter extends RecyclerView.Adapter<DeviceAdapter.ViewHolder> {
+class PlantAdapter extends RecyclerView.Adapter<PlantAdapter.ViewHolder> {
     @SuppressWarnings("unused")
-    public static final String  ID = "DeviceAdapter";
+    public static final String  ID = "PlantAdapter";
 
-    private ErminaDevices mDevices;
+    private Plants mPlants;
     private Context       mContext;
     private RecyclerView  mRecyclerView;
 
 
-    DeviceAdapter(ErminaDevices devices, Context context, RecyclerView recyclerView) {
-        mDevices      = devices;
+    PlantAdapter(Plants plants, Context context, RecyclerView recyclerView) {
+        mPlants       = plants;
         mContext      = context;
         mRecyclerView = recyclerView;
     }
@@ -56,16 +54,16 @@ class DeviceAdapter extends RecyclerView.Adapter<DeviceAdapter.ViewHolder> {
 
     @Override
     public void onBindViewHolder(final ViewHolder holder, final int position) {
-        DeviceOnClickListener onClickListener;
-        final ErminaDevice    dev;
+        PlantOnClickListener onClickListener;
+        final Plant          plant;
 
-        dev             = mDevices.get(position);
-        onClickListener = new DeviceOnClickListener(mContext,
-                                                    mRecyclerView,
-                                                    mDevices.get(position));
+        plant           = mPlants.get(position);
+        onClickListener = new PlantOnClickListener(mContext,
+                                                   mRecyclerView,
+                                                   mPlants.get(position));
 
-        holder.mDevName.setText(dev.getName());
-        holder.mDevAddr.setText(dev.getAddress());
+        holder.mDevName.setText(plant.mName);
+        holder.mDevAddr.setText(plant.mLatinName);
         holder.mDevImg.setImageResource(android.R.drawable.stat_sys_data_bluetooth);
         holder.mDevImg.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
         holder.mCardView.setOnClickListener(onClickListener);
@@ -73,6 +71,6 @@ class DeviceAdapter extends RecyclerView.Adapter<DeviceAdapter.ViewHolder> {
 
     @Override
     public int getItemCount() {
-        return mDevices.size();
+        return mPlants.size();
     }
 }

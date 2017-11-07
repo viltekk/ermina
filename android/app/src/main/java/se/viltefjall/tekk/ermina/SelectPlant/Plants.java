@@ -1,14 +1,26 @@
 package se.viltefjall.tekk.ermina.SelectPlant;
 
-/**
- * Created by danial on 2017-11-02.
- */
+import java.util.ArrayList;
 
 public class Plants {
     @SuppressWarnings("unused")
     private static final String ID = "Plants";
 
-    Plants(String file) {
+    private ArrayList<Plant> mPlants;
 
+    Plants() {
+        mPlants = new ArrayList<>();
+    }
+
+    void addPlant(Plant p) {
+        mPlants.add(p);
+    }
+
+    Plant get(int pos) {
+        return mPlants.get(pos);
+    }
+
+    public int size() {
+        return mPlants.size();
     }
 }

@@ -58,7 +58,7 @@ public class ViewStatusActivity extends Activity {
 
     public void settings(View view) {
         Intent intent = new Intent(this, SelectPlantActivity.class);
-        intent.putExtra(SelectPlantActivity.SELECTED_DEVICE, mDevice);
+        intent.putExtra(ViewStatusActivity.SELECTED_DEVICE, mDevice);
         startActivity(intent);
     }
 

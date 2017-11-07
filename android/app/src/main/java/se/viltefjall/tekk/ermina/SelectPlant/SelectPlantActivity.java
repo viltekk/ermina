@@ -7,16 +7,16 @@ import android.support.v7.widget.RecyclerView;
 import android.view.Window;
 
 import se.viltefjall.tekk.ermina.R;
-import se.viltefjall.tekk.ermina.common.DummyDevices;
+import se.viltefjall.tekk.ermina.common.ErrorDialog;
 
 public class SelectPlantActivity extends Activity {
     @SuppressWarnings("unused")
-    public static final String SELECTED_DEVICE = "se.viltefjall.tekk.ermina.SELECTED_DEVICE";
-    public static final String ID              = "SelectPlantActivity";
+    public static final String ID = "SelectPlantActivity";
 
+    ErrorDialog                mError;
     RecyclerView               mRecyclerView;
     RecyclerView.LayoutManager mLayoutManager;
-    DeviceAdapter              mDeviceAdapter;
+    PlantAdapter               mPlantAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -24,32 +24,19 @@ public class SelectPlantActivity extends Activity {
         getWindow().requestFeature(Window.FEATURE_CONTENT_TRANSITIONS);
         setContentView(R.layout.activity_select_plant);
         setTitle(R.string.SelectPlantTitle);
+        mError = new ErrorDialog(this);
+
+        PlantsXMLParser parser = new PlantsXMLParser(getString(R.string.PlantsURL));
+        (new DownloadXmlTask(this)).execute(parser);
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        build();
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-        mRecyclerView  = null;
-        mLayoutManager = null;
-        mDeviceAdapter = null;
-    }
-
-    public void build() {
-        //BTDevices devices = new BTDevices();
-        DummyDevices devices = new DummyDevices();
+    void build(Plants plants) {
         mRecyclerView     = findViewById(R.id.RecyclerView);
         mLayoutManager    = new LinearLayoutManager(this);
-        mDeviceAdapter    = new DeviceAdapter(devices, this, mRecyclerView);
+        mPlantAdapter     = new PlantAdapter(plants, this, mRecyclerView);
 
-        devices.populate(mDeviceAdapter);
         mRecyclerView.setHasFixedSize(true);
         mRecyclerView.setLayoutManager(mLayoutManager);
-        mRecyclerView.setAdapter(mDeviceAdapter);
+        mRecyclerView.setAdapter(mPlantAdapter);
     }
 }
