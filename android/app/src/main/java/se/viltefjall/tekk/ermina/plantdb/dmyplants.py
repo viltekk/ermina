@@ -13,7 +13,7 @@ for i in range(1, 21):
     xml += "\t\t<latin>Plantus dumminus {0}</latin>\n".format(i)
     xml += "\t\t<hi>{0}</hi>\n".format(hi)
     xml += "\t\t<lo>{0}</lo>\n".format(lo)
-    xml += "\t<plant>\n"
+    xml += "\t</plant>\n"
 
 xml += "</plants>\n"
     

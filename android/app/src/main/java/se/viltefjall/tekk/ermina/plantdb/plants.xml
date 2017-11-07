@@ -2,121 +2,121 @@
 	<plant>
 		<name>Plant 1</name>
 		<latin>Plantus dumminus 1</latin>
-		<hi>20</hi>
-		<lo>7</lo>
-	<plant>
+		<hi>84</hi>
+		<lo>39</lo>
+	</plant>
 	<plant>
 		<name>Plant 2</name>
 		<latin>Plantus dumminus 2</latin>
-		<hi>90</hi>
-		<lo>45</lo>
-	<plant>
+		<hi>24</hi>
+		<lo>1</lo>
+	</plant>
 	<plant>
 		<name>Plant 3</name>
 		<latin>Plantus dumminus 3</latin>
 		<hi>37</hi>
-		<lo>1</lo>
-	<plant>
+		<lo>0</lo>
+	</plant>
 	<plant>
 		<name>Plant 4</name>
 		<latin>Plantus dumminus 4</latin>
-		<hi>47</hi>
-		<lo>42</lo>
-	<plant>
+		<hi>16</hi>
+		<lo>12</lo>
+	</plant>
 	<plant>
 		<name>Plant 5</name>
 		<latin>Plantus dumminus 5</latin>
-		<hi>16</hi>
-		<lo>12</lo>
-	<plant>
+		<hi>23</hi>
+		<lo>17</lo>
+	</plant>
 	<plant>
 		<name>Plant 6</name>
 		<latin>Plantus dumminus 6</latin>
 		<hi>29</hi>
-		<lo>4</lo>
-	<plant>
+		<lo>16</lo>
+	</plant>
 	<plant>
 		<name>Plant 7</name>
 		<latin>Plantus dumminus 7</latin>
-		<hi>56</hi>
-		<lo>38</lo>
-	<plant>
+		<hi>42</hi>
+		<lo>40</lo>
+	</plant>
 	<plant>
 		<name>Plant 8</name>
 		<latin>Plantus dumminus 8</latin>
-		<hi>49</hi>
-		<lo>27</lo>
-	<plant>
+		<hi>44</hi>
+		<lo>0</lo>
+	</plant>
 	<plant>
 		<name>Plant 9</name>
 		<latin>Plantus dumminus 9</latin>
-		<hi>38</hi>
-		<lo>33</lo>
-	<plant>
+		<hi>35</hi>
+		<lo>24</lo>
+	</plant>
 	<plant>
 		<name>Plant 10</name>
 		<latin>Plantus dumminus 10</latin>
-		<hi>78</hi>
-		<lo>48</lo>
-	<plant>
+		<hi>39</hi>
+		<lo>37</lo>
+	</plant>
 	<plant>
 		<name>Plant 11</name>
 		<latin>Plantus dumminus 11</latin>
-		<hi>58</hi>
-		<lo>26</lo>
-	<plant>
+		<hi>40</hi>
+		<lo>19</lo>
+	</plant>
 	<plant>
 		<name>Plant 12</name>
 		<latin>Plantus dumminus 12</latin>
-		<hi>57</hi>
-		<lo>28</lo>
-	<plant>
+		<hi>56</hi>
+		<lo>30</lo>
+	</plant>
 	<plant>
 		<name>Plant 13</name>
 		<latin>Plantus dumminus 13</latin>
-		<hi>86</hi>
-		<lo>37</lo>
-	<plant>
+		<hi>63</hi>
+		<lo>14</lo>
+	</plant>
 	<plant>
 		<name>Plant 14</name>
 		<latin>Plantus dumminus 14</latin>
-		<hi>85</hi>
-		<lo>36</lo>
-	<plant>
+		<hi>87</hi>
+		<lo>46</lo>
+	</plant>
 	<plant>
 		<name>Plant 15</name>
 		<latin>Plantus dumminus 15</latin>
-		<hi>34</hi>
-		<lo>11</lo>
-	<plant>
+		<hi>30</hi>
+		<lo>25</lo>
+	</plant>
 	<plant>
 		<name>Plant 16</name>
 		<latin>Plantus dumminus 16</latin>
-		<hi>74</hi>
-		<lo>38</lo>
-	<plant>
+		<hi>51</hi>
+		<lo>15</lo>
+	</plant>
 	<plant>
 		<name>Plant 17</name>
 		<latin>Plantus dumminus 17</latin>
-		<hi>27</hi>
-		<lo>20</lo>
-	<plant>
+		<hi>72</hi>
+		<lo>22</lo>
+	</plant>
 	<plant>
 		<name>Plant 18</name>
 		<latin>Plantus dumminus 18</latin>
-		<hi>54</hi>
-		<lo>27</lo>
-	<plant>
+		<hi>29</hi>
+		<lo>5</lo>
+	</plant>
 	<plant>
 		<name>Plant 19</name>
 		<latin>Plantus dumminus 19</latin>
-		<hi>8</hi>
-		<lo>7</lo>
-	<plant>
+		<hi>72</hi>
+		<lo>31</lo>
+	</plant>
 	<plant>
 		<name>Plant 20</name>
 		<latin>Plantus dumminus 20</latin>
-		<hi>46</hi>
-		<lo>30</lo>
-	<plant>
+		<hi>49</hi>
+		<lo>46</lo>
+	</plant>
 </plants>
