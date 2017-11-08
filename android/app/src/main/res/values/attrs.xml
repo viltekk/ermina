@@ -31,7 +31,9 @@
         <attr name="textPenSize"     />
         <attr name="textSize"        />
         <attr name="capStyle"        />
-        <attr name="arrowColor" format="color" />
+        <attr name="arrowColor"  format="color"   />
+        <attr name="handleColor" format="color"   />
+        <attr name="cfgMode"     format="boolean" />
     </declare-styleable>
 
     <declare-styleable name="WaterView" parent="StatusView">

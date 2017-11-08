@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/connectDeviceLayout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:animateLayoutChanges="true"
+    tools:context="se.viltefjall.tekk.ermina.CustomPlant.CustomPlantActivity">
+
+    <se.viltefjall.tekk.ermina.common.MoistureView
+        android:id="@+id/moistureView"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginBottom="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:layout_weight="1"
+        android:visibility="visible"
+        app:backgroundColor="#d1d1d1"
+        app:fromDegree="140"
+        app:gaugePenSize="60"
+        app:cfgMode="true"
+        app:handleColor="@color/handleColor"
+        app:iconColor="@color/moistureLevelColor"
+        app:layout_constraintBottom_toTopOf="@+id/button"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.0"
+        app:ringColor="@color/statusRingColor"
+        app:ringPenSize="30"
+        app:toDegree="400" />
+
+    <Button
+        android:id="@+id/button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="32dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginStart="8dp"
+        android:background="@drawable/custom_button"
+        android:elevation="5dp"
+        android:paddingLeft="16dp"
+        android:paddingRight="16dp"
+        android:onClick="setCustom"
+        android:text="@string/customSet"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+</android.support.constraint.ConstraintLayout>

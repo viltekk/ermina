@@ -3,7 +3,6 @@ package se.viltefjall.tekk.ermina.common;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.os.SystemClock;
-import android.util.Log;
 
 import java.io.IOException;
 import java.util.Random;
@@ -19,14 +18,15 @@ public class DummyDevice implements ErminaDevice {
     private int    mThrLo;
     private int    mThrHi;
 
-    public DummyDevice(Parcel parcel) {
+    @SuppressWarnings("WeakerAccess")
+    DummyDevice(Parcel parcel) {
         mName       = parcel.readString();
         mAddress    = parcel.readString();
-        mBtCommTime = 300;
+        mBtCommTime = 100;
         mRng        = new Random();
     }
 
-    public DummyDevice(String name, String address) {
+    DummyDevice(String name, String address) {
         mName    = name;
         mAddress = address;
     }

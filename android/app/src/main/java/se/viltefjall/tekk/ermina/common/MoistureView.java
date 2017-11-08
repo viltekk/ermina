@@ -1,6 +1,7 @@
 package se.viltefjall.tekk.ermina.common;
 
 import android.animation.ValueAnimator;
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Canvas;
@@ -12,6 +13,7 @@ import android.graphics.RectF;
 import android.support.v4.content.ContextCompat;
 import android.text.TextPaint;
 import android.util.AttributeSet;
+import android.view.MotionEvent;
 import android.view.View;
 
 import se.viltefjall.tekk.ermina.R;
@@ -42,11 +44,8 @@ public class MoistureView extends View {
     private Point mPtr2;
     private Point mPtr3;
     private Path  mPathArrow;
-    private int   mAngle;
 
     // moisture values
-    private float     mMin;
-    private float     mMax;
     private float     mCur;
     private float     mRangeAngleMin;
     private float     mRangeAngleSweep;
@@ -60,6 +59,19 @@ public class MoistureView extends View {
     long          mAnimDuration;
     ValueAnimator mRangeAnimator;
     ValueAnimator mArrowAnimator;
+
+    // custom mode
+    private float   mMin;
+    private float   mMax;
+    private float   mLoAng;
+    private float   mHiAng;
+    private boolean mCustomMode;
+    private float   mHandleRadius;
+    private Point   mHandleLo;
+    private Point   mHandleHi;
+    private Paint   mPaintHandle;
+    private boolean mLoHit;
+    private boolean mHiHit;
 
     public MoistureView(Context context) {
         super(context);
@@ -91,10 +103,13 @@ public class MoistureView extends View {
         mAnimDuration = 1000;
         mCur = 0;
 
+        mCustomMode = a.getBoolean(R.styleable.MoistureView_cfgMode, false);
+
         mGaugePenSize = a.getInt(R.styleable.MoistureView_gaugePenSize,  50);
         mRingPenSize  = a.getInt(R.styleable.MoistureView_ringPenSize ,  50);
         mFromDegree   = a.getInt(R.styleable.MoistureView_fromDegree  ,   0);
         mToDegree     = a.getInt(R.styleable.MoistureView_toDegree    , 360);
+        mHandleRadius = mGaugePenSize * 1.2f;
 
         mPaintForeground = new Paint();
         mPaintForeground.setStrokeWidth(mGaugePenSize);
@@ -121,12 +136,17 @@ public class MoistureView extends View {
         int textSize    = a.getInt(R.styleable.MoistureView_textSize, 80);
         int textPenSize = a.getInt(R.styleable.MoistureView_textPenSize, 10);
 
+        if(mCustomMode) {
+            textSize /= 2;
+            textPenSize /= 2;
+        }
+
         mPaintText = new TextPaint();
         mPaintText.setStrokeWidth(textPenSize);
+        mPaintText.setTextSize(textSize * getResources().getDisplayMetrics().density);
         mPaintText.setStyle(Paint.Style.FILL);
         mPaintText.setStrokeCap(Paint.Cap.ROUND);
         mPaintText.setTextAlign(Paint.Align.CENTER);
-        mPaintText.setTextSize(textSize * getResources().getDisplayMetrics().density);
         mPaintText.setColor(
                 a.getColor(
                         R.styleable.MoistureView_textColor,
@@ -142,6 +162,14 @@ public class MoistureView extends View {
                     R.styleable.MoistureView_ringColor,
                     ContextCompat.getColor(getContext(), R.color.colorAccent)
             )
+        );
+
+        mPaintHandle = new Paint();
+        mPaintHandle.setColor(
+                a.getColor(
+                        R.styleable.MoistureView_handleColor,
+                        ContextCompat.getColor(getContext(), R.color.colorAccent)
+                )
         );
 
         mPaintIcon = new Paint();
@@ -170,6 +198,13 @@ public class MoistureView extends View {
         );
 
         a.recycle();
+
+        if(mCustomMode) {
+            mHandleLo = new Point();
+            mHandleHi = new Point();
+            mMin      = 25;
+            mMax      = 75;
+        }
     }
 
     @Override
@@ -198,6 +233,10 @@ public class MoistureView extends View {
         }
 
         createIcon(mContentWidth, mContentHeight);
+
+        if(mCustomMode) {
+            setRange(mMin, mMax);
+        }
     }
 
     void createArrow(float v) {
@@ -244,33 +283,48 @@ public class MoistureView extends View {
     }
 
     public void setRange(float min, float max) {
-        mMin = min;
         mRangeAngleMin = ((float)mFromDegree) + (min * ((float)(mToDegree-mFromDegree)/100f));
-        if(mRangeAnimator != null) {
-            mRangeAnimator.cancel();
-        }
 
-        long duration = (long)(mAnimDuration * (Math.abs(mMin-max))/100f);
-        mRangeAnimator = ValueAnimator.ofFloat(mMin, max);
-        mRangeAnimator.setDuration(duration);
-        mRangeAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-            @Override
-            public void onAnimationUpdate(ValueAnimator valueAnimator) {
-                float v = (float) valueAnimator.getAnimatedValue();
-                createRange(v);
-                invalidate();
+        if(mCustomMode) {
+            float a;
+            createRange(max);
+
+            a = mRangeAngleMin;
+            setHandle(mHandleLo, a);
+
+            a = mRangeAngleMin + mRangeAngleSweep;
+            setHandle(mHandleHi, a);
+
+            mLoAng = mRangeAngleMin;
+            mHiAng = mRangeAngleMin + mRangeAngleSweep;
+        } else {
+            if (mRangeAnimator != null) {
+                mRangeAnimator.cancel();
             }
-        });
-        mRangeAnimator.start();
-        mMax = max;
+
+            long duration = (long) (mAnimDuration * (Math.abs(min - max)) / 100f);
+            mRangeAnimator = ValueAnimator.ofFloat(min, max);
+            mRangeAnimator.setDuration(duration);
+            mRangeAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+                @Override
+                public void onAnimationUpdate(ValueAnimator valueAnimator) {
+                    float v = (float) valueAnimator.getAnimatedValue();
+                    createRange(v);
+                    invalidate();
+                }
+            });
+            mRangeAnimator.start();
+        }
     }
 
     public void setCur(int cur) {
+        if(mCustomMode) { return; }
+
         if(mArrowAnimator != null) {
             mArrowAnimator.cancel();
         }
 
-        long duration = (long)(mAnimDuration * ((float)Math.abs(mCur-cur))/100f);
+        long duration = (long)(mAnimDuration * (Math.abs(mCur-cur))/100f);
         mArrowAnimator = ValueAnimator.ofFloat(mCur, cur);
         mArrowAnimator.setDuration(duration);
         mArrowAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
@@ -285,24 +339,97 @@ public class MoistureView extends View {
         mCur = cur;
     }
 
-    private void createIcon(int w, int h) {
-        mIcon.reset();
-        mIcon.moveTo(w/2, 4.5f*h/16);
-        mIcon.lineTo(14.5f*w/32, 6*h/16);
-        mIcon.moveTo(w/2, 4.5f*h/16);
-        mIcon.lineTo(17.5f*w/32, 6*h/16);
-        mIcon.arcTo(
-                new RectF(
-                        14.5f*w/32,
-                        5.5f*h/16,
-                        17.5f*w/32,
-                        7*h/16
-                ),
-                0,
-                180
-        );
-        mIcon.lineTo(14.5f*w/32, 6*h/16);
-        mIcon.close();
+    @SuppressLint("ClickableViewAccessibility")
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        float x, y, cx, cy;
+        super.onTouchEvent(event);
+
+        cx = mContentWidth/2f;
+        cy = mContentHeight/2f;
+        x  = event.getX();
+        y  = event.getY();
+
+        switch (event.getAction()) {
+            case MotionEvent.ACTION_DOWN:
+                float minx;
+                float maxx;
+                float miny;
+                float maxy;
+
+                minx = mHandleLo.x - mHandleRadius;
+                maxx = mHandleLo.x + mHandleRadius;
+                miny = mHandleLo.y - mHandleRadius;
+                maxy = mHandleLo.y + mHandleRadius;
+                mLoHit = x >= minx && x <= maxx && y >= miny && y <= maxy;
+
+                minx = mHandleHi.x - mHandleRadius;
+                maxx = mHandleHi.x + mHandleRadius;
+                miny = mHandleHi.y - mHandleRadius;
+                maxy = mHandleHi.y + mHandleRadius;
+                mHiHit = x >= minx && x <= maxx && y >= miny && y <= maxy;
+
+                break;
+            case MotionEvent.ACTION_UP:
+                break;
+            case MotionEvent.ACTION_MOVE:
+                /*
+                 *   2 |  3
+                 * ----+----
+                 *   1 |  0
+                 */
+                float a = 0;
+                float t = (float) Math.toDegrees( Math.atan((y-cy)/(x-cx)) );
+
+                // quadrant 0
+                if(x > cx && y > cy) {
+                    a = 360 + t;
+                }
+                // quadrant 1
+                if(x <= cx && y > cy) {
+                    a = 180 + t;
+                }
+                // quadrant 2
+                if(x <= cx && y <= cy) {
+                    a = 180 + t;
+                }
+                // quadrant 3
+                if(x > cx && y <= cy) {
+                    a = 360 + t;
+                }
+
+                if(a < mFromDegree) {
+                    a = mFromDegree;
+                }
+                if(a > mToDegree) {
+                    a = mToDegree;
+                }
+
+                if(mLoHit) {
+                    if(a >= mHiAng-20) {
+                        a = mHiAng-20;
+                    }
+                    mMin = 100f*(a-mFromDegree)/(mToDegree-mFromDegree);
+                    mRangeAngleSweep += mRangeAngleMin - a;
+                    mRangeAngleMin = mLoAng = a;
+
+                    setHandle(mHandleLo, a);
+                    invalidate();
+                }
+
+                if(mHiHit) {
+                    if(a <= mLoAng+20) {
+                        a = mLoAng+20;
+                    }
+                    mMax = 100f*(a-mFromDegree)/(mToDegree-mFromDegree);
+                    mRangeAngleSweep = a - mRangeAngleMin;
+                    mHiAng = a;
+                    setHandle(mHandleHi, a);
+                    invalidate();
+                }
+                break;
+        }
+        return true;
     }
 
     @Override
@@ -332,14 +459,69 @@ public class MoistureView extends View {
                 mPaintForeground
         );
 
+        if(mCustomMode) {
+            canvas.drawCircle(
+                    mHandleLo.x,
+                    mHandleLo.y,
+                    mHandleRadius,
+                    mPaintHandle
+            );
+
+            canvas.drawCircle(
+                    mHandleHi.x,
+                    mHandleHi.y,
+                    mHandleRadius,
+                    mPaintHandle
+            );
+        }
+
         canvas.drawPath(mPathArrow, mPaintArrow);
         canvas.drawPath(mIcon, mPaintIcon);
 
-        canvas.drawText(
-                String.valueOf((int)mCur),
-                mContentWidth/2,
-                3*(mContentHeight/4),
-                mPaintText
+        if(mCustomMode) {
+            canvas.drawText(
+                    String.valueOf((int) mMin) + "|" + String.valueOf((int)mMax),
+                    mContentWidth / 2,
+                    3 * (mContentHeight / 4),
+                    mPaintText
+            );
+        } else {
+            canvas.drawText(
+                    String.valueOf((int) mCur),
+                    mContentWidth / 2,
+                    3 * (mContentHeight / 4),
+                    mPaintText
+            );
+        }
+    }
+
+    private void setHandle(Point p, float a) {
+        float cx, cy, r;
+        r  = mInnerRadius - mGaugePenSize/2f;
+        cx = mContentWidth/2f;
+        cy = mContentHeight/2f;
+
+        p.x = (int) (Math.cos(Math.toRadians(a)) * r + cx);
+        p.y = (int) (Math.sin(Math.toRadians(a)) * r + cy);
+    }
+
+    private void createIcon(int w, int h) {
+        mIcon.reset();
+        mIcon.moveTo(w/2, 4.5f*h/16);
+        mIcon.lineTo(14.5f*w/32, 6*h/16);
+        mIcon.moveTo(w/2, 4.5f*h/16);
+        mIcon.lineTo(17.5f*w/32, 6*h/16);
+        mIcon.arcTo(
+                new RectF(
+                        14.5f*w/32,
+                        5.5f*h/16,
+                        17.5f*w/32,
+                        7*h/16
+                ),
+                0,
+                180
         );
+        mIcon.lineTo(14.5f*w/32, 6*h/16);
+        mIcon.close();
     }
 }

@@ -9,4 +9,5 @@
     <color name="waterLevelColor">#79e6ff</color>
     <color name="moistureLevelColor">#79e6ff</color>
     <color name="moistureArrowColor">#c8ff2882</color>
+    <color name="handleColor">#ff2882</color>
 </resources>

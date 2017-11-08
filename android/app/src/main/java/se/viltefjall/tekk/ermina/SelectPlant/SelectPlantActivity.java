@@ -1,12 +1,17 @@
 package se.viltefjall.tekk.ermina.SelectPlant;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
+import android.view.View;
 import android.view.Window;
 
+import se.viltefjall.tekk.ermina.CustomPlant.CustomPlantActivity;
 import se.viltefjall.tekk.ermina.R;
+import se.viltefjall.tekk.ermina.ViewStatus.ViewStatusActivity;
 import se.viltefjall.tekk.ermina.common.ErrorDialog;
 
 public class SelectPlantActivity extends Activity {
@@ -14,9 +19,11 @@ public class SelectPlantActivity extends Activity {
     public static final String ID = "SelectPlantActivity";
 
     ErrorDialog                mError;
+    AnimationManager           mAnimMgr;
     RecyclerView               mRecyclerView;
     RecyclerView.LayoutManager mLayoutManager;
     PlantAdapter               mPlantAdapter;
+    PlantsXMLParser            mParser;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -24,7 +31,13 @@ public class SelectPlantActivity extends Activity {
         getWindow().requestFeature(Window.FEATURE_CONTENT_TRANSITIONS);
         setContentView(R.layout.activity_select_plant);
         setTitle(R.string.SelectPlantTitle);
-        mError = new ErrorDialog(this);
+
+        mRecyclerView  = null;
+        mLayoutManager = null;
+        mAnimMgr       = new AnimationManager(this);
+        mError         = new ErrorDialog(this);
+        mParser        = new PlantsXMLParser(getString(R.string.PlantsURL));
+
         loadPlants();
     }
 
@@ -42,18 +55,37 @@ public class SelectPlantActivity extends Activity {
         loadPlants();
     }
 
-    private void loadPlants() {
-        PlantsXMLParser parser = new PlantsXMLParser(getString(R.string.PlantsURL));
-        (new DownloadXmlTask(this)).execute(parser);
+    public void custom(View v) {
+        Intent intent = new Intent(this, CustomPlantActivity.class);
+        startActivity(intent);
+    }
+
+    public void reload(View v) {
+        Log.d(ID, "reload");
+        mAnimMgr.hideList();
+        mAnimMgr.showConnecting();
+    }
+
+    void loadPlants() {
+        Log.d(ID, "loadPlants");
+        (new DownloadXmlTask(this)).execute(mParser);
     }
 
     void build(Plants plants) {
-        mRecyclerView  = findViewById(R.id.RecyclerView);
-        mLayoutManager = new LinearLayoutManager(this);
-        mPlantAdapter  = new PlantAdapter(plants, this, mRecyclerView);
+        Log.d(ID, "build");
+        if(mLayoutManager == null) {
+            mLayoutManager = new LinearLayoutManager(this);
+        }
 
-        mRecyclerView.setHasFixedSize(true);
-        mRecyclerView.setLayoutManager(mLayoutManager);
+        if(mRecyclerView == null) {
+            mRecyclerView = findViewById(R.id.plants);
+            mRecyclerView.setHasFixedSize(true);
+            mRecyclerView.setLayoutManager(mLayoutManager);
+        }
+        mPlantAdapter = new PlantAdapter(plants, this, mRecyclerView);
+
         mRecyclerView.setAdapter(mPlantAdapter);
+        mAnimMgr.hideConnecting();
+        mAnimMgr.showList();
     }
 }
