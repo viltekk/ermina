@@ -12,12 +12,17 @@ import android.view.Window;
 import se.viltefjall.tekk.ermina.CustomPlant.CustomPlantActivity;
 import se.viltefjall.tekk.ermina.R;
 import se.viltefjall.tekk.ermina.ViewStatus.ViewStatusActivity;
+import se.viltefjall.tekk.ermina.common.ErminaDevice;
 import se.viltefjall.tekk.ermina.common.ErrorDialog;
 
 public class SelectPlantActivity extends Activity {
     @SuppressWarnings("unused")
+    public static final String SELECTED_DEVICE = "se.viltefjall.tekk.ermina.SELECTED_DEVICE";
+
+    @SuppressWarnings("unused")
     public static final String ID = "SelectPlantActivity";
 
+    ErminaDevice               mDevice;
     ErrorDialog                mError;
     AnimationManager           mAnimMgr;
     RecyclerView               mRecyclerView;
@@ -37,6 +42,7 @@ public class SelectPlantActivity extends Activity {
         mAnimMgr       = new AnimationManager(this);
         mError         = new ErrorDialog(this);
         mParser        = new PlantsXMLParser(getString(R.string.PlantsURL));
+        mDevice        = getIntent().getParcelableExtra(SELECTED_DEVICE);
 
         loadPlants();
     }
@@ -57,6 +63,7 @@ public class SelectPlantActivity extends Activity {
 
     public void custom(View v) {
         Intent intent = new Intent(this, CustomPlantActivity.class);
+        intent.putExtra(CustomPlantActivity.SELECTED_DEVICE, mDevice);
         startActivity(intent);
     }
 

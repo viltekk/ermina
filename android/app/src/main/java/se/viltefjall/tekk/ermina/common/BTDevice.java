@@ -48,16 +48,6 @@ public class BTDevice implements Parcelable, ErminaDevice {
     }
 
     @Override
-    public int getMoistureMin() {
-        return 0;
-    }
-
-    @Override
-    public int getMoistureMax() {
-        return 0;
-    }
-
-    @Override
     public int getMoistureThrLow() {
         return 0;
     }
@@ -68,13 +58,7 @@ public class BTDevice implements Parcelable, ErminaDevice {
     }
 
     @Override
-    public int getWaterMin() {
-        return 0;
-    }
-
-    @Override
-    public int getWaterMax() {
-        return 0;
+    public void setThr(int lo, int hi) throws IOException {
     }
 
     @Override

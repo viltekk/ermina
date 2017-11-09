@@ -8,6 +8,25 @@
     android:animateLayoutChanges="true"
     tools:context="se.viltefjall.tekk.ermina.CustomPlant.CustomPlantActivity">
 
+    <ProgressBar
+        android:id="@+id/progress"
+        style="?android:attr/progressBarStyleLarge"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:layout_above="@+id/connectDeviceLayout"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginStart="8dp"
+        android:scaleX="0"
+        android:scaleY="0"
+        android:indeterminate="true"
+        android:indeterminateDrawable="@drawable/connect_progress"
+        android:visibility="visible"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
     <se.viltefjall.tekk.ermina.common.MoistureView
         android:id="@+id/moistureView"
         android:layout_width="0dp"

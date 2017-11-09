@@ -88,6 +88,14 @@ public class MoistureView extends View {
         init(attrs, defStyle);
     }
 
+    public float getThrLo() {
+        return mMin;
+    }
+
+    public float getThrHi() {
+        return mMax;
+    }
+
     private void init(AttributeSet attrs, int defStyle) {
         // Load attributes
         final TypedArray a = getContext().obtainStyledAttributes(
@@ -137,7 +145,7 @@ public class MoistureView extends View {
         int textPenSize = a.getInt(R.styleable.MoistureView_textPenSize, 10);
 
         if(mCustomMode) {
-            textSize /= 2;
+            textSize /= 1.5;
             textPenSize /= 2;
         }
 

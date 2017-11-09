@@ -3,6 +3,7 @@ package se.viltefjall.tekk.ermina.common;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.os.SystemClock;
+import android.util.Log;
 
 import java.io.IOException;
 import java.util.Random;
@@ -46,16 +47,6 @@ public class DummyDevice implements ErminaDevice {
     }
 
     @Override
-    public int getMoistureMin() {
-        return 0;
-    }
-
-    @Override
-    public int getMoistureMax() {
-        return 100;
-    }
-
-    @Override
     public int getMoistureThrLow() {
         btComm();
         mThrLo = mRng.nextInt(50);
@@ -70,13 +61,8 @@ public class DummyDevice implements ErminaDevice {
     }
 
     @Override
-    public int getWaterMin() {
-        return 0;
-    }
-
-    @Override
-    public int getWaterMax() {
-        return 100;
+    public void setThr(int lo, int hi) throws IOException {
+        btComm();
     }
 
     @Override

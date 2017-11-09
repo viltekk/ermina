@@ -44,11 +44,11 @@ public class ViewStatusActivity extends Activity {
     }
 
     public void reload(View view) {
-        mAnimMgr.hideStatus();
-        mAnimMgr.showConnecting();
+        connectAndReload();
     }
 
     void connectAndReload() {
+        mAnimMgr.animReload(AnimationManager.SHOW);
         if(!mDevice.isConnected()) {
             new ViewStatusConnectTask(this).execute(mDevice);
         } else {
@@ -145,8 +145,8 @@ public class ViewStatusActivity extends Activity {
                 a.mWater = result.mWater;
                 a.mMoist = result.mMoist;
 
-                a.mAnimMgr.hideConnecting();
-                a.mAnimMgr.showStatus();
+                a.mAnimMgr.animReload(AnimationManager.HIDE);
+                a.setValues();
             } else {
                 String e = "failed to get values";
                 a.mError.displayError(e, true);
