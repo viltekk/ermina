@@ -1,0 +1,89 @@
+Messages between Arduino and a client are sent as ASCII chars with max size of
+one byte.
+
+-------------------------------------------------------------------- DEFINITIONS
+[S]       - Server side
+[C]       - Client side
+\n        - newline
+<min val> - The minimum allowed moisture level, 0 - 100 (percentage)
+<max val> - The maximum allowed moisture level, 0 - 100 (percentage)
+<wlevel>  - The current water level in tank, 0 - 100 (percentage)
+<mlevel>  - The current moisture level in plant, 0 - 100 (percentage)
+
+-------------------------------------------------------------------------- CODES
+0   - OK
+1   - Not OK
+100 - Initiate comms
+101 - Read current configuration
+102 - Read current water level in tank
+103 - Read current moisture level in plant
+200 - Write new configuration
+
+----------------------------------------------------------------------- EXAMPLES
+[C]: 10\n
+
+The above means that a client sends ASCII 10 to the server followed by a newline
+
+[S]: 53\n
+The above means that the server sends ASCII 53 to a client followed by a newline
+
+--------------------------------------------------------------------- INITIATION
+[C]: 100\n
+
+If server accepts intiation
+[S]: 0\n
+
+If server rejects initiation
+[S]: 1\n
+
+----------------------------------------------------------------------- READ CFG
+This requires that communication is initiated
+
+[C]: 101\n
+
+If server accepts request
+[S] 0\n
+[S] <min val>\n
+[S] <max val>\n
+
+If server rejects request
+[S] 1\n
+
+--------------------------------------------------------------- READ WATER LEVEL
+This requires that communication is initiated
+
+[C]: 102\n
+
+If server accepts request
+[S] 0\n
+[S] <wlevel>\n
+
+If server rejects request
+[S] 1\n
+
+--------------------------------------------------------------- READ MOISTURE LEVEL
+This requires that communication is initiated
+
+[C]: 103\n
+
+If server accepts request
+[S] 0\n
+[S] <mlevel>\n
+
+If server rejects request
+[S] 1\n
+
+---------------------------------------------------------------------- WRITE CFG
+This requires that communication is initiated
+
+[C]: 200\n
+
+If server accepts request
+[S] 0\n
+[C] <min val>\n
+[S] 0\n
+[C] <max val>\n
+[S] 0\n
+
+If server rejects request
+[S] 1\n
