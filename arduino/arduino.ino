@@ -1,4 +1,5 @@
 #include <EEPROM.h>
+#include <SoftwareSerial.h>
 #include <Adafruit_NeoPixel.h>
 
 /* ---------------------------------------------------------------------- LED */
@@ -23,10 +24,10 @@
 #define MOIST_MAX     (100)
 
 /* ---------------------------------------------------------------- bluetooth */
-#define BT_RX (  8)
-#define BT_TX (  9)
-#define BT_TO (100)
-#define BT_WT ( 10)
+#define BT_RX (   9)
+#define BT_TX (   8)
+#define BT_TO (1000)
+#define BT_WT (  10)
 
 #define OK      (  0)
 #define NOK     (  1)
@@ -36,7 +37,7 @@
 #define RD_MLVL (103)
 #define WR_CFG  (200)
 
-#define BTCHK(e) if((e) == NOK) { btnok(); return; }
+#define BTCHK(e) if((e) == NOK) { TRACELN("BTCHK"); btnok(); return; }
 
 SoftwareSerial bt(BT_TX, BT_RX);
 
@@ -61,85 +62,14 @@ cfg_t _cfg;
 #endif
 
 /* -------------------------------------------------------------- global vars */
-#define TIME_BTW_MEASURE (1) // minutes to wait between measurements
+#define TIME_BTW_MEASURE (15) // minutes to wait between measurements
 
 Adafruit_NeoPixel _led = Adafruit_NeoPixel(LED_COUNT,
                                            PIN_LED,
                                            NEO_GRB + NEO_KHZ800);
 
-unsigned _level = 0;
-unsigned _moist = 0;
-
-/*---------------------------------------------------------------------- btwt */
-int btwt() {
-  int to;
-  int er;
-
-  er = OK;
-  to = BT_TO;
-  while( !bt.available() ) {
-    delay(BT_WT);
-    to -= BT_WT;
-    if(to <= 0) {
-      er = NOK;
-      break;
-    }
-  }
-
-  return er;
-}
-
-/*---------------------------------------------------------------------- btrd */
-int btrd(uint8_t *v) {
-  int ret;
-  int to;
-  int er;
-
-  er = btwt();  
-  if(er == 0) {
-    *v = (uint8_t)bt.parseInt(); 
-    er = btwt();
-    if(er == OK) {
-      er = bt.read() == '\n' ? OK : NOK; // newline
-    }
-  }
-  return er;
-}
-
-/*---------------------------------------------------------------------- btok */
-void btok() {
-  bt.println(OK);
-}
-
-/*--------------------------------------------------------------------- btnok */
-void btnok() {
-  bt.println(NOK);
-}
-
-/* ---------------------------------------------------------------- bluetooth */
-void bluetooth() {
-  int     e;
-  uint8_t v;
-  
-  if( bt.available() ) {
-    e = btrd(&v); BTCHK(e);
-
-    if(v == INIT) {
-      btok();
-      e = btrd(&v); BTCHK(e);
-
-      switch(v) {
-      case RD_CFG : rdcfg (); break;
-      case RD_WLVL: rdwlvl(); break;
-      case RD_MLVL: rdmlvl(); break;
-      case WR_CFG : wrcfg (); break;
-      default     : btnok (); break;
-      }
-    } else {
-      btnok();
-    }
-  }
-}
+unsigned _wlvl = 0;
+unsigned _mlvl = 0;
 
 /* -------------------------------------------------------------------- level */
 void level() {
@@ -165,21 +95,146 @@ void level() {
   TRACE("t0: "); TRACE(t0); TRACE("\t");
   TRACE("t1: "); TRACE(t1); TRACE("\t");
   TRACE("cm: "); TRACELN(cm);
+
+  _wlvl = cm;
 }
 
 /* -------------------------------------------------------------------- moist */
 void moist() {
   digitalWrite(PIN_MOIST_PWR, HIGH);
   delay(500);
-  _moist = analogRead(PIN_MOIST_DAT);
+  _mlvl = analogRead(PIN_MOIST_DAT);
   digitalWrite(PIN_MOIST_PWR, LOW);
   
-  TRACE("moisture level: "); TRACELN(_moist);
+  TRACE("moisture level: "); TRACELN(_mlvl);
 }
 
 /* --------------------------------------------------------------------- pump */
 void pump() {
 
+}
+
+/*--------------------------------------------------------------------- rdcfg */
+void rdcfg() {
+  TRACELN("Read configuration");
+  bt.println(_cfg.min);
+  bt.println(_cfg.max);
+}
+
+/*-------------------------------------------------------------------- rdwlvl */
+void rdwlvl() {
+  TRACELN("Read water level");
+  level();
+  bt.println(_wlvl);
+}
+
+/*-------------------------------------------------------------------- rdmlvl */
+void rdmlvl() {
+  TRACELN("Read moisture level");
+  moist();
+  bt.println(_mlvl);
+}
+
+/*--------------------------------------------------------------------- wrcfg */
+void wrcfg() {
+  int     e;
+  uint8_t min;
+  uint8_t max;
+
+  // min value
+  e = btrd(&min); BTCHK(e);
+  if(min > 100) {
+    btnok();
+    return;
+  }
+
+  // max value
+  e = btrd(&max); BTCHK(e);
+  if(max > 100) {
+    btnok();
+    return;
+  }
+
+  _cfg.min = min;
+  _cfg.max = max;
+  EEPROM.put(CFG_ADDRESS, _cfg);
+}
+
+/*---------------------------------------------------------------------- btwt */
+int btwt() {
+  int to;
+  int er;
+
+  er = OK;
+  to = BT_TO;
+  while( !bt.available() ) {
+    delay(BT_WT);
+    to -= BT_WT;
+    if(to <= 0) {
+      TRACELN("bt timeout");
+      er = NOK;
+      break;
+    }
+  }
+
+  return er;
+}
+
+/*---------------------------------------------------------------------- btrd */
+int btrd(uint8_t *v) {
+  int ret;
+  int to;
+  int er;
+
+  er = btwt();  
+  if(er == 0) {
+    *v = (uint8_t)bt.parseInt();
+    er = btwt();
+    if(er == OK) {
+      if( bt.read() == 0xA ) {
+        er = OK;
+      } else {
+        er = NOK;
+      }
+    }
+  }
+  return er;
+}
+
+/*---------------------------------------------------------------------- btok */
+void btok() {
+  bt.println(OK);
+}
+
+/*--------------------------------------------------------------------- btnok */
+void btnok() {
+  bt.println(NOK);
+}
+
+/* ---------------------------------------------------------------- bluetooth */
+void bluetooth() {
+  int     e;
+  uint8_t v;
+  
+  if( bt.available() ) {
+    TRACELN("Detected bluetooth communication");
+    e = btrd(&v);
+
+    if(e == OK && v == INIT) {
+      btok(); TRACELN("BT initiated");
+      e = btrd(&v); BTCHK(e); btok();
+
+      switch(v) {
+      case RD_CFG : rdcfg (); break;
+      case RD_WLVL: rdwlvl(); break;
+      case RD_MLVL: rdmlvl(); break;
+      case WR_CFG : wrcfg (); break;
+      default     : btnok (); break;
+      }
+    } else {
+      btnok();
+    }
+  }
 }
 
 /* -------------------------------------------------------------------- setup */
@@ -199,6 +254,8 @@ void setup() {
   _led.show();
 
   EEPROM.get(CFG_ADDRESS, _cfg);
+
+  TRACELN("Setup complete");
 }
 
 /* --------------------------------------------------------------------- loop */
@@ -206,14 +263,15 @@ unsigned long prev_measure = 0;
 void loop() {
   unsigned t;
   unsigned m;
+
+  // --------- handle bluetooth communications
+  bluetooth();
   
   t = millis();
   m = (t - prev_measure) / 1000 / 60;
   if(m >= TIME_BTW_MEASURE) {
+    TRACELN("running loop");
     prev_measure = t;
-
-    // --------- handle bluetooth communications
-    bluetooth();
 
     // --------- run moisture process
     moist();

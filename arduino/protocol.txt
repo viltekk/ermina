@@ -58,7 +58,7 @@ If server accepts request
 [S] 0\n
 [S] <wlevel>\n
 
-If server rejects request
+If server rejects request.
 [S] 1\n
 
 --------------------------------------------------------------- READ MOISTURE LEVEL
@@ -86,4 +86,6 @@ If server accepts request
 [S] 0\n
 
 If server rejects request
+If <min val> < 0 or <min val> > 100
+If <max val> < 0 or <max val> > 100
 [S] 1\n
