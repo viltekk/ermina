@@ -5,8 +5,8 @@ one byte.
 [S]       - Server side
 [C]       - Client side
 \n        - newline
-<min val> - The minimum allowed moisture level, 0 - 100 (percentage)
-<max val> - The maximum allowed moisture level, 0 - 100 (percentage)
+<lo>      - The minimum allowed moisture level, 0 - 100 (percentage)
+<hi>      - The maximum allowed moisture level, 0 - 100 (percentage)
 <wlevel>  - The current water level in tank, 0 - 100 (percentage)
 <mlevel>  - The current moisture level in plant, 0 - 100 (percentage)
 
@@ -14,10 +14,12 @@ one byte.
 0   - OK
 1   - Not OK
 100 - Initiate comms
-101 - Read current configuration
-102 - Read current water level in tank
+101 - Request lower moisture threshold value
+102 - Request higher moisture threshold value
 103 - Read current moisture level in plant
+104 - Read current water level in tank
 200 - Write new configuration
+201 - Calibrate moist sensor
 
 ----------------------------------------------------------------------- EXAMPLES
 [C]: 10\n
@@ -36,29 +38,26 @@ If server accepts intiation
 If server rejects initiation
 [S]: 1\n
 
------------------------------------------------------------------------ READ CFG
+------------------------------------------------------------------ READ MOIST LO
 This requires that communication is initiated
 
 [C]: 101\n
 
 If server accepts request
-[S] 0\n
-[S] <min val>\n
-[S] <max val>\n
+[S] <lo>\n
 
 If server rejects request
 [S] 1\n
 
---------------------------------------------------------------- READ WATER LEVEL
+------------------------------------------------------------------ READ MOIST HI
 This requires that communication is initiated
 
 [C]: 102\n
 
 If server accepts request
-[S] 0\n
-[S] <wlevel>\n
+[S] <hi>\n
 
-If server rejects request.
+If server rejects request
 [S] 1\n
 
 --------------------------------------------------------------- READ MOISTURE LEVEL
@@ -67,10 +66,20 @@ This requires that communication is initiated
 [C]: 103\n
 
 If server accepts request
-[S] 0\n
 [S] <mlevel>\n
 
 If server rejects request
+[S] 1\n
+
+--------------------------------------------------------------- READ WATER LEVEL
+This requires that communication is initiated
+
+[C]: 104\n
+
+If server accepts request
+[S] <wlevel>\n
+
+If server rejects request.
 [S] 1\n
 
 ---------------------------------------------------------------------- WRITE CFG
@@ -79,13 +88,26 @@ This requires that communication is initiated
 [C]: 200\n
 
 If server accepts request
-[S] 0\n
 [C] <min val>\n
 [S] 0\n
 [C] <max val>\n
 [S] 0\n
 
-If server rejects request
-If <min val> < 0 or <min val> > 100
+If server rejects request or
+If <min val> < 0 or <min val> > 100 or
 If <max val> < 0 or <max val> > 100
 [S] 1\n
+
+---------------------------------------------------------------------- CALIBRATE
+This requires that communication is initiated
+
+[C]: 201\n
+[S]: 0\n
+[C]: 201\n
+[S]: 0\n
+
+The second 201 has to come within 1 minute after the server replies with 0\n
+from the first 201.
+
+The server may reply with the following if something went wrong
+[S]: 1\n

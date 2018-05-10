@@ -20,8 +20,10 @@
 /* ----------------------------------------------------------------- moisture */
 #define PIN_MOIST_DAT ( A0)
 #define PIN_MOIST_PWR (  2)
-#define MOIST_MIN     (  0)
-#define MOIST_MAX     (100)
+#define MOIST_MIN     (  0) // percentage
+#define MOIST_MAX     (100) // percentage
+#define CALIB_TO      ( 60) // seconds
+#define CALIB_STEPS   (  4) // 1 << CALIB_STEPS
 
 /* ---------------------------------------------------------------- bluetooth */
 #define BT_RX (   9)
@@ -32,10 +34,12 @@
 #define OK      (  0)
 #define NOK     (  1)
 #define INIT    (100)
-#define RD_CFG  (101)
-#define RD_WLVL (102)
+#define RD_LO   (101)
+#define RD_HI   (102)
 #define RD_MLVL (103)
+#define RD_WLVL (104)
 #define WR_CFG  (200)
+#define CALIB   (201)
 
 #define BTCHK(e) if((e) == NOK) { TRACELN("BTCHK"); btnok(); return; }
 
@@ -45,8 +49,10 @@ SoftwareSerial bt(BT_TX, BT_RX);
 #define CFG_ADDRESS (0)
 
 typedef struct {
-  uint8_t min;
-  uint8_t max;
+  uint16_t moist_min; // 0.. 0xffff
+  uint16_t moist_max; // 0.. 0xffff
+  uint8_t  moist_lo; // 0.. 100
+  uint8_t  moist_hi; // 0.. 100
 } cfg_t;
 cfg_t _cfg;
 
@@ -70,6 +76,54 @@ Adafruit_NeoPixel _led = Adafruit_NeoPixel(LED_COUNT,
 
 unsigned _wlvl = 0;
 unsigned _mlvl = 0;
+
+/*---------------------------------------------------------------------- btwt */
+int btwt(unsigned long to) {
+  int er;
+
+  er = OK;
+  while( !bt.available() ) {
+    delay(BT_WT);
+    to -= BT_WT;
+    if(to <= 0) {
+      TRACELN("bt timeout");
+      er = NOK;
+      break;
+    }
+  }
+
+  return er;
+}
+
+/*---------------------------------------------------------------------- btrd */
+int btrd(uint8_t *v, unsigned long to) {
+  int ret;
+  int er;
+
+  er = btwt(to);
+  if(er == 0) {
+    *v = (uint8_t)bt.parseInt();
+    er = btwt(to);
+    if(er == OK) {
+      if( bt.read() == 0xA ) {
+        er = OK;
+      } else {
+        er = NOK;
+      }
+    }
+  }
+  return er;
+}
+
+/*---------------------------------------------------------------------- btok */
+void btok() {
+  bt.println(OK);
+}
+
+/*--------------------------------------------------------------------- btnok */
+void btnok() {
+  bt.println(NOK);
+}
 
 /* -------------------------------------------------------------------- level */
 void level() {
@@ -115,10 +169,15 @@ void pump() {
 }
 
 /*--------------------------------------------------------------------- rdcfg */
-void rdcfg() {
-  TRACELN("Read configuration");
-  bt.println(_cfg.min);
-  bt.println(_cfg.max);
+void rdlo() {
+  TRACELN("Read lo");
+  bt.println(_cfg.moist_lo);
+}
+
+/*--------------------------------------------------------------------- rdcfg */
+void rdhi() {
+  TRACELN("Read hi");
+  bt.println(_cfg.moist_hi);
 }
 
 /*-------------------------------------------------------------------- rdwlvl */
@@ -138,77 +197,64 @@ void rdmlvl() {
 /*--------------------------------------------------------------------- wrcfg */
 void wrcfg() {
   int     e;
-  uint8_t min;
-  uint8_t max;
+  uint8_t moist_lo;
+  uint8_t moist_hi;
 
-  // min value
-  e = btrd(&min); BTCHK(e);
-  if(min > 100) {
+  // moist_lo value
+  e = btrd(&moist_lo, BT_TO); BTCHK(e);
+  if(moist_lo > 100) {
+    btnok();
+    return;
+  } else {
+    btok();
+  }
+
+  // moist_hi value
+  e = btrd(&moist_hi, BT_TO); BTCHK(e);
+  if(moist_hi > 100) {
     btnok();
     return;
   }
 
-  // max value
-  e = btrd(&max); BTCHK(e);
-  if(max > 100) {
+  _cfg.moist_lo = moist_lo;
+  _cfg.moist_hi = moist_hi;
+  //EEPROM.put(CFG_ADDRESS, _cfg);
+  btok();
+
+  TRACE("cfg.moist_lo = "); TRACELN(_cfg.moist_lo);
+  TRACE("cfg.moist_hi = "); TRACELN(_cfg.moist_hi);
+}
+
+/*--------------------------------------------------------------------- calib */
+void calib() {
+  uint16_t t;
+  uint8_t  v;
+  int      e;
+
+  t = 0;
+  for(int i = 0; i < (1 << CALIB_STEPS); i++) {
+    moist();
+    t += _mlvl;
+  }
+  _cfg.moist_min = t >> CALIB_STEPS;
+  btok();
+  
+  e = btrd(&v, CALIB_TO*1000);
+  if(e == NOK || v != CALIB) {
     btnok();
     return;
   }
 
-  _cfg.min = min;
-  _cfg.max = max;
-  EEPROM.put(CFG_ADDRESS, _cfg);
-}
-
-/*---------------------------------------------------------------------- btwt */
-int btwt() {
-  int to;
-  int er;
-
-  er = OK;
-  to = BT_TO;
-  while( !bt.available() ) {
-    delay(BT_WT);
-    to -= BT_WT;
-    if(to <= 0) {
-      TRACELN("bt timeout");
-      er = NOK;
-      break;
-    }
+  t = 0;
+  for(int i = 0; i < (1 << CALIB_STEPS); i++) {
+    moist();
+    t += _mlvl;
   }
+  _cfg.moist_max = t >> CALIB_STEPS;
+  btok();
 
-  return er;
-}
-
-/*---------------------------------------------------------------------- btrd */
-int btrd(uint8_t *v) {
-  int ret;
-  int to;
-  int er;
-
-  er = btwt();  
-  if(er == 0) {
-    *v = (uint8_t)bt.parseInt();
-    er = btwt();
-    if(er == OK) {
-      if( bt.read() == 0xA ) {
-        er = OK;
-      } else {
-        er = NOK;
-      }
-    }
-  }
-  return er;
-}
-
-/*---------------------------------------------------------------------- btok */
-void btok() {
-  bt.println(OK);
-}
-
-/*--------------------------------------------------------------------- btnok */
-void btnok() {
-  bt.println(NOK);
+  TRACE("moist min = "); TRACELN(_cfg.moist_min);
+  TRACE("moist max = "); TRACELN(_cfg.moist_max);
 }
 
 /* ---------------------------------------------------------------- bluetooth */
@@ -218,17 +264,19 @@ void bluetooth() {
   
   if( bt.available() ) {
     TRACELN("Detected bluetooth communication");
-    e = btrd(&v);
+    e = btrd(&v, BT_TO);
 
     if(e == OK && v == INIT) {
       btok(); TRACELN("BT initiated");
-      e = btrd(&v); BTCHK(e); btok();
+      e = btrd(&v, BT_TO); BTCHK(e);
 
       switch(v) {
-      case RD_CFG : rdcfg (); break;
-      case RD_WLVL: rdwlvl(); break;
+      case RD_LO  : rdlo  (); break;
+      case RD_HI  : rdhi  (); break;
       case RD_MLVL: rdmlvl(); break;
+      case RD_WLVL: rdwlvl(); break;
       case WR_CFG : wrcfg (); break;
+      case CALIB  : calib (); break;
       default     : btnok (); break;
       }
     } else {
