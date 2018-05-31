@@ -29,8 +29,6 @@
 /* ----------------------------------------------------------------- moisture */
 #define PIN_MOIST_DAT ( A0)
 #define PIN_MOIST_PWR (  2)
-#define MOIST_MIN     (  0) // percentage
-#define MOIST_MAX     (100) // percentage
 #define CALIB_TO      ( 60) // seconds
 #define CALIB_STEPS   (  4) // 1 << CALIB_STEPS
 
