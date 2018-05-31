@@ -620,23 +620,4 @@ void loop() {
   }
   
   pump();
-
-  /** --------------- playground --------------- **/
-  #if 0
-  int r = 0;
-  int st = 0;
-  
-  _led.setPixelColor(0, r, 0, 0);
-  _led.show();
-  
-  if(st == 0) {
-    r++;
-  } else {
-    r--;
-  }
-  if(r > 255) { st = 1; r = 255; }
-  if(r <   0) { st = 0; r = 0;   }
-  
-  delay(2);
-  #endif
 }
