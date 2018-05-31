@@ -47,6 +47,16 @@ public class DummyDevice implements ErminaDevice {
     }
 
     @Override
+    public int getMoistureMin() throws IOException {
+        return 1000;
+    }
+
+    @Override
+    public int getMoistureMax() throws IOException {
+        return 100;
+    }
+
+    @Override
     public int getMoistureThrLow() {
         btComm();
         mThrLo = mRng.nextInt(50);
@@ -61,7 +71,7 @@ public class DummyDevice implements ErminaDevice {
     }
 
     @Override
-    public void setThr(int lo, int hi) throws IOException {
+    public void setMoistureThr(int lo, int hi) throws IOException {
         btComm();
     }
 
@@ -78,12 +88,22 @@ public class DummyDevice implements ErminaDevice {
     }
 
     @Override
+    public void calibrateDry() throws IOException {
+        btComm();
+    }
+
+    @Override
+    public void calibrateWet() throws IOException {
+        btComm();
+    }
+
+    @Override
     public void connect() throws IOException {
         btComm();
     }
 
     @Override
-    public void disconnect() throws IOException {}
+    public void disconnect() {}
 
     @Override
     public boolean isConnected() {

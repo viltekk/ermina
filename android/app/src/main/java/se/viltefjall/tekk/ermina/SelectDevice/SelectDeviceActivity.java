@@ -7,6 +7,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.Window;
 
 import se.viltefjall.tekk.ermina.R;
+import se.viltefjall.tekk.ermina.common.BTDevices;
 import se.viltefjall.tekk.ermina.common.DummyDevices;
 
 public class SelectDeviceActivity extends Activity {
@@ -40,8 +41,8 @@ public class SelectDeviceActivity extends Activity {
     }
 
     public void build() {
-        //BTDevices devices = new BTDevices();
-        DummyDevices devices = new DummyDevices();
+        BTDevices devices = new BTDevices();
+        //DummyDevices devices = new DummyDevices();
         mRecyclerView     = findViewById(R.id.RecyclerView);
         mLayoutManager    = new LinearLayoutManager(this);
         mDeviceAdapter    = new DeviceAdapter(devices, this, mRecyclerView);

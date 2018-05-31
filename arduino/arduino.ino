@@ -3,18 +3,27 @@
 #include <Adafruit_NeoPixel.h>
 
 /* ---------------------------------------------------------------------- LED */
-#define LED_COUNT (1)
-#define PIN_LED   (4)
+#define LED_COUNT ( 1)
+#define PIN_LED   (12)
+
+// 0xRRGGBB
+#define LED_MIN   (0xff0000) // completely red
+//#define LED_MAX   (0x1599f6) // completely green
+#define LED_MAX   (0x0000ff) // completely green
 
 /* --------------------------------------------------------------------- pump */
-#define PIN_PUMP (3)
+#define PIN_PUMP (   5)
+#define PUMP_MAX ( 300) // max amount of seconds to run pump
+#define PID_Kp   ( 0.4)
+#define PID_Ki   (0.02)
+#define PID_Kd   ( 0.2)
 
 /* -------------------------------------------------------------- water level */
 #define PIN_TRIG (10)
 #define PIN_ECHO (11)
 
-#define WLVL_MIN (   10) // cm
-#define WLVL_MAX (    3) // cm
+#define WLVL_MIN ( 10.0) // cm
+#define WLVL_MAX (  3.0) // cm
 #define PW_MAX   (23200) // pulse width for 400 cm, max for HC-SR04
 
 /* ----------------------------------------------------------------- moisture */
@@ -32,14 +41,20 @@
 #define BT_WT (  10)
 
 #define OK      (  0)
-#define NOK     (  1)
+#define NOK     (999)
 #define INIT    (100)
-#define RD_LO   (101)
-#define RD_HI   (102)
-#define RD_MLVL (103)
-#define RD_WLVL (104)
+#define RD_MIN  (101)
+#define RD_MAX  (102)
+#define RD_LO   (103)
+#define RD_HI   (104)
+#define RD_MLVL (105)
+#define RD_WLVL (106)
+#define RD_PID  (107)
 #define WR_CFG  (200)
 #define CALIB   (201)
+#define WR_Kp   (202)
+#define WR_Ki   (203)
+#define WR_Kd   (204)
 
 #define BTCHK(e) if((e) == NOK) { TRACELN("BTCHK"); btnok(); return; }
 
@@ -51,8 +66,8 @@ SoftwareSerial bt(BT_TX, BT_RX);
 typedef struct {
   uint16_t moist_min; // 0.. 0xffff
   uint16_t moist_max; // 0.. 0xffff
-  uint8_t  moist_lo; // 0.. 100
-  uint8_t  moist_hi; // 0.. 100
+  uint16_t moist_lo;  // 0.. 0xffff
+  uint16_t moist_hi;  // 0.. 0xffff
 } cfg_t;
 cfg_t _cfg;
 
@@ -60,25 +75,39 @@ cfg_t _cfg;
 #define DEBUG
 
 #ifdef DEBUG
-#define TRACE(S) Serial.print((S))
+#define TRACE(S) Serial.print((S));
 #define TRACELN(S) Serial.println((S))
 #else
 #define TRACE(S)
 #define TRACELN(S)
 #endif
 
+// debug commands
+#define DBG      (255)
+#define PUMP_ON  (254)
+#define PUMP_OFF (253)
+
 /* -------------------------------------------------------------- global vars */
-#define TIME_BTW_MEASURE (15) // minutes to wait between measurements
+#define TIME_BTW_MEASURE ((15*60)) // seconds to wait between measurements
 
 Adafruit_NeoPixel _led = Adafruit_NeoPixel(LED_COUNT,
                                            PIN_LED,
                                            NEO_GRB + NEO_KHZ800);
 
-unsigned _wlvl = 0;
-unsigned _mlvl = 0;
+float    _wlvl         = 0;
+uint16_t _mlvl         = 0;
+uint16_t _prev_measure = 0;
+bool     _force_pump   = false;
+
+// debug
+#define HIST_SZ (20)
+int16_t hist_p[HIST_SZ];
+int16_t hist_i[HIST_SZ];
+int16_t hist_d[HIST_SZ];
+uint8_t hist_c = 0;
 
 /*---------------------------------------------------------------------- btwt */
-int btwt(unsigned long to) {
+uint16_t btwt(uint16_t to) {
   int er;
 
   er = OK;
@@ -96,13 +125,13 @@ int btwt(unsigned long to) {
 }
 
 /*---------------------------------------------------------------------- btrd */
-int btrd(uint8_t *v, unsigned long to) {
-  int ret;
-  int er;
+uint8_t btrd(uint16_t *v, uint16_t to) {
+  uint16_t ret;
+  uint8_t  er;
 
   er = btwt(to);
   if(er == 0) {
-    *v = (uint8_t)bt.parseInt();
+    *v = (uint16_t)bt.parseInt();
     er = btwt(to);
     if(er == OK) {
       if( bt.read() == 0xA ) {
@@ -125,12 +154,54 @@ void btnok() {
   bt.println(NOK);
 }
 
+/* ---------------------------------------------------------------------- led */
+void led() {
+  uint8_t min_r;
+  uint8_t min_g;
+  uint8_t min_b;
+
+  uint8_t max_r;
+  uint8_t max_g;
+  uint8_t max_b;
+
+  uint8_t w;
+  uint8_t r;
+  uint8_t g;
+  uint8_t b;
+
+  float k0;
+  float k1;
+
+  min_r = (LED_MIN >> 16) & 0xff;
+  min_g = (LED_MIN >>  8) & 0xff;
+  min_b = (LED_MIN      ) & 0xff;
+
+  max_r = (LED_MAX >> 16) & 0xff;
+  max_g = (LED_MAX >>  8) & 0xff;
+  max_b = (LED_MAX      ) & 0xff;
+
+  w  = round((100.0*(WLVL_MIN-_wlvl)) / (WLVL_MIN-WLVL_MAX));
+  k0 = w/100.0;
+  k1 = (100-w)/100.0;
+  r  = k0*max_r + k1*min_r;
+  g  = k0*max_g + k1*min_g;
+  b  = k0*max_b + k1*min_b;
+
+  _led.setPixelColor(0, r, g, b);
+  _led.show();
+
+
+  TRACE("w: "); TRACE(w); TRACE(", ");
+  TRACE("r: "); TRACE(r); TRACE(", ");
+  TRACE("g: "); TRACE(g); TRACE(", ");
+  TRACE("b: "); TRACELN(b);
+}
+
 /* -------------------------------------------------------------------- level */
 void level() {
-  unsigned long t0;
-  unsigned long t1;
-  unsigned long pw;
-  float         cm;
+  uint16_t t0;
+  uint16_t t1;
+  uint16_t pw;
 
   digitalWrite(PIN_TRIG, HIGH);
   delayMicroseconds(10);
@@ -142,84 +213,206 @@ void level() {
   while( digitalRead(PIN_ECHO) == 1 );
   t1 = micros();
 
-  pw = t1 - t0;
-  cm = pw / 58.0;
+  delay(60);
 
+  pw    = t1 - t0;
+  _wlvl = pw / 58.0;
+  
   TRACE("OF: "); TRACE(pw >= PW_MAX ? "yes" : "no"); TRACE("\t");
-  TRACE("t0: "); TRACE(t0); TRACE("\t");
-  TRACE("t1: "); TRACE(t1); TRACE("\t");
-  TRACE("cm: "); TRACELN(cm);
+  TRACE("wlvl: "); TRACELN(_wlvl);
 
-  _wlvl = cm;
+  if(_wlvl < WLVL_MAX) {
+    _wlvl = WLVL_MAX;
+  }
+  if(_wlvl > WLVL_MIN) {
+    _wlvl = WLVL_MIN;
+  }
+
+  led();
+
+  TRACE("water level: "); TRACELN(_wlvl);
 }
 
 /* -------------------------------------------------------------------- moist */
+bool _moist_sat = false;
 void moist() {
   digitalWrite(PIN_MOIST_PWR, HIGH);
-  delay(500);
+  delay(10);
   _mlvl = analogRead(PIN_MOIST_DAT);
   digitalWrite(PIN_MOIST_PWR, LOW);
   
+  if(!_moist_sat) {
+    _moist_sat = _mlvl <= _cfg.moist_hi;
+  } else {
+    _moist_sat = !(_mlvl >= _cfg.moist_lo);
+  }
+
   TRACE("moisture level: "); TRACELN(_mlvl);
 }
 
-/* --------------------------------------------------------------------- pump */
-void pump() {
+/* ---------------------------------------------------------------------- pid */
+int16_t  _pid_e       = 0;
+int16_t  _pid_i       = 0;
+uint8_t  _pid_sp      = 0;
+uint16_t _pump_t      = 0;
+uint16_t _prev_pump_t = 0;
 
+void pid() {
+  int16_t e;
+  int16_t p;
+  int16_t i;
+  int16_t d;
+  int16_t t;
+
+  e = _mlvl - _pid_sp;
+  _pid_i += e;
+
+  p = PID_Kp * e;
+  i = PID_Ki * _pid_i;
+  d = PID_Kd * (_pid_e - e);
+  t = p + i + d;
+
+  TRACE("e = "); TRACE(e); TRACE("\t");
+  TRACE("p = "); TRACE(p); TRACE("\t");
+  TRACE("i = "); TRACE(i); TRACE("\t");
+  TRACE("d = "); TRACE(d); TRACE("\t");
+  TRACE("t = "); TRACELN(t);
+
+  _prev_pump_t = _pump_t;
+  if(t < 0) {
+    _pump_t = 0;
+  } else {
+    if(t > PUMP_MAX) {
+      _pump_t = PUMP_MAX;
+    } else {
+      _pump_t = t;
+    }
+  }
+
+  _pid_e = e;
+
+  hist_p[hist_c] = p;
+  hist_i[hist_c] = i;
+  hist_d[hist_c] = d;
+  hist_c++;
+  if(hist_c > HIST_SZ) {
+    hist_c = 0;
+  }
 }
 
-/*--------------------------------------------------------------------- rdcfg */
+/* ------------------------------------------------------------------ pump_on */
+void pump_on() {
+  TRACELN("force pump on");
+  _force_pump = true;
+}
+
+/* ------------------------------------------------------------------ pump_off */
+void pump_off() {
+  TRACELN("force pump off");
+  _force_pump = false;
+}
+
+/* --------------------------------------------------------------------- pump */
+bool     _pump_running = false;
+uint16_t _pump_start   = 0;
+
+void pump() {
+  uint8_t v;
+
+  if(_pump_running) {
+    _pump_running = millis()/1000 - _pump_start < _pump_t;
+    if(!_pump_running) {
+      _pump_t = 0;
+    }
+  } else {
+    if(!_moist_sat && _pump_t > 0) {
+      _pump_start   = millis()/1000;
+      _pump_running = true;
+      TRACE("running pump for "); TRACE(_pump_t); TRACELN(" seconds");
+    }
+  }
+
+  v = _pump_running||_force_pump ? HIGH : LOW;
+  digitalWrite(PIN_PUMP, v);
+}
+
+/*--------------------------------------------------------------------- rdpid */
+void rdpid() {
+  TRACE("Read PID: ");
+  TRACE(PID_Kp); TRACE(" "); TRACE(PID_Ki); TRACE(" "); TRACELN(PID_Kd);
+  bt.println(PID_Kp);
+  bt.println(PID_Ki);
+  bt.println(PID_Kd);
+}
+
+/*--------------------------------------------------------------------- rdmin */
+void rdmin() {
+  TRACE("Read min: "); TRACELN(_cfg.moist_min);
+  bt.println(_cfg.moist_min);
+}
+
+/*--------------------------------------------------------------------- rdmax */
+void rdmax() {
+  TRACE("Read max: "); TRACELN(_cfg.moist_max);
+  bt.println(_cfg.moist_max);
+}
+
+/*---------------------------------------------------------------------- rdlo */
 void rdlo() {
-  TRACELN("Read lo");
+  TRACE("Read lo: "); TRACELN(_cfg.moist_lo);
   bt.println(_cfg.moist_lo);
 }
 
-/*--------------------------------------------------------------------- rdcfg */
+/*---------------------------------------------------------------------- rdhi */
 void rdhi() {
-  TRACELN("Read hi");
+  TRACE("Read hi: "); TRACELN(_cfg.moist_hi);
   bt.println(_cfg.moist_hi);
 }
 
 /*-------------------------------------------------------------------- rdwlvl */
 void rdwlvl() {
-  TRACELN("Read water level");
+  int rsp;
   level();
-  bt.println(_wlvl);
+  rsp = round((100.0*(WLVL_MIN-_wlvl)) / (WLVL_MIN-WLVL_MAX));
+  TRACE("Read water level: "); TRACELN(rsp);
+  bt.println(rsp);
 }
 
 /*-------------------------------------------------------------------- rdmlvl */
 void rdmlvl() {
-  TRACELN("Read moisture level");
   moist();
+    
+  if(_mlvl < _cfg.moist_max) {
+    _mlvl = _cfg.moist_max;
+  }
+  if(_mlvl > _cfg.moist_min) {
+    _mlvl = _cfg.moist_min;
+  }
+
+  TRACE("Read moisture level: "); TRACELN(_mlvl);
   bt.println(_mlvl);
 }
 
 /*--------------------------------------------------------------------- wrcfg */
 void wrcfg() {
-  int     e;
-  uint8_t moist_lo;
-  uint8_t moist_hi;
+  uint8_t  e;
+  uint16_t moist_lo;
+  uint16_t moist_hi;
 
-  // moist_lo value
-  e = btrd(&moist_lo, BT_TO); BTCHK(e);
-  if(moist_lo > 100) {
+  e = btrd(&moist_lo, BT_TO); BTCHK(e); btok();
+  e = btrd(&moist_hi, BT_TO); BTCHK(e);
+
+  TRACE("lo: "); TRACELN(moist_lo);
+  TRACE("hi: "); TRACELN(moist_hi);
+
+  if(moist_hi > moist_lo) {
     btnok();
-    return;
   } else {
+    _cfg.moist_lo = moist_lo;
+    _cfg.moist_hi = moist_hi;
+    EEPROM.put(CFG_ADDRESS, _cfg);
     btok();
   }
-
-  // moist_hi value
-  e = btrd(&moist_hi, BT_TO); BTCHK(e);
-  if(moist_hi > 100) {
-    btnok();
-    return;
-  }
-
-  _cfg.moist_lo = moist_lo;
-  _cfg.moist_hi = moist_hi;
-  //EEPROM.put(CFG_ADDRESS, _cfg);
-  btok();
 
   TRACE("cfg.moist_lo = "); TRACELN(_cfg.moist_lo);
   TRACE("cfg.moist_hi = "); TRACELN(_cfg.moist_hi);
@@ -228,15 +421,17 @@ void wrcfg() {
 /*--------------------------------------------------------------------- calib */
 void calib() {
   uint16_t t;
-  uint8_t  v;
-  int      e;
+  uint16_t v;
+  uint16_t min;
+  uint16_t max;
+  uint8_t  e;
 
   t = 0;
   for(int i = 0; i < (1 << CALIB_STEPS); i++) {
     moist();
     t += _mlvl;
   }
-  _cfg.moist_min = t >> CALIB_STEPS;
+  min = t >> CALIB_STEPS;
   btok();
   
   e = btrd(&v, CALIB_TO*1000);
@@ -250,34 +445,118 @@ void calib() {
     moist();
     t += _mlvl;
   }
-  _cfg.moist_max = t >> CALIB_STEPS;
+  max = t >> CALIB_STEPS;
+
+  // avoid division by zero in rdmlvl
+  if(max == min) {
+    max--;
+  }
+
+  _cfg.moist_min = min;
+  _cfg.moist_max = max;
+  EEPROM.put(CFG_ADDRESS, _cfg);
+
   btok();
 
   TRACE("moist min = "); TRACELN(_cfg.moist_min);
   TRACE("moist max = "); TRACELN(_cfg.moist_max);
 }
 
+/* ---------------------------------------------------------------------- dbg */
+void dbg() {
+  #if 0
+  for(int i = 0; i < HIST_SZ; i++) {
+    bt.print("p["); bt.print(i); bt.print("] = ");
+    bt.println(hist_p[i]);
+
+    Serial.print("p["); Serial.print(i); Serial.print("] = ");
+    Serial.println(hist_p[i]);
+  }
+  bt.println();
+  Serial.println();
+
+  for(int i = 0; i < HIST_SZ; i++) {
+    bt.print("i["); bt.print(i); bt.print("] = ");
+    bt.println(hist_i[i]);
+
+    Serial.print("i["); Serial.print(i); Serial.print("] = ");
+    Serial.println(hist_i[i]);
+  }
+  bt.println();
+  Serial.println();
+  
+  for(int i = 0; i < HIST_SZ; i++) {
+    bt.print("d["); bt.print(i); bt.print("] = ");
+    bt.println(hist_d[i]);
+
+    Serial.print("d["); Serial.print(i); Serial.print("] = ");
+    Serial.println(hist_d[i]);
+  }
+  #endif
+
+  Serial.print("cfg.min: "); Serial.println(_cfg.moist_min);
+  Serial.print("cfg.max: "); Serial.println(_cfg.moist_max);
+
+  bt.print("cfg.min: "); bt.println(_cfg.moist_min);
+  bt.print("cfg.max: "); bt.println(_cfg.moist_max);
+
+  Serial.print("cfg.lo: "); Serial.println(_cfg.moist_lo);
+  Serial.print("cfg.hi: "); Serial.println(_cfg.moist_hi);
+
+  bt.print("cfg.lo: "); bt.println(_cfg.moist_lo);
+  bt.print("cfg.hi: "); bt.println(_cfg.moist_hi);
+
+  Serial.print("time til measure: ");
+  Serial.println(TIME_BTW_MEASURE - (millis()/1000 - _prev_measure));
+  
+  bt.print("time til measure: ");
+  bt.println(TIME_BTW_MEASURE - (millis()/1000 - _prev_measure));
+
+  Serial.print("_pump_running: "); Serial.println(_pump_running);
+  Serial.print("_force_pump: "); Serial.println(_force_pump);
+
+  bt.print("_pump_running: "); bt.println(_pump_running);
+  bt.print("_force_pump: "); bt.println(_force_pump);
+
+  Serial.print("_pump_t: "); Serial.println(_pump_t);
+  Serial.print("_prev_pump_t: "); Serial.println(_prev_pump_t);
+
+  bt.print("_pump_t: "); bt.println(_pump_t);
+  bt.print("_prev_pump_t: "); bt.println(_prev_pump_t);
+
+  Serial.print("_moist_sat: "); Serial.println(_moist_sat);
+  Serial.print("_moist_sat: "); Serial.println(_moist_sat);
+
+  bt.print("_moist_sat: "); bt.println(_moist_sat);
+  bt.print("_moist_sat: "); bt.println(_moist_sat);
+}
+
 /* ---------------------------------------------------------------- bluetooth */
 void bluetooth() {
-  int     e;
-  uint8_t v;
+  uint8_t  e;
+  uint16_t v;
   
   if( bt.available() ) {
-    TRACELN("Detected bluetooth communication");
     e = btrd(&v, BT_TO);
 
     if(e == OK && v == INIT) {
-      btok(); TRACELN("BT initiated");
+      btok();
       e = btrd(&v, BT_TO); BTCHK(e);
 
       switch(v) {
-      case RD_LO  : rdlo  (); break;
-      case RD_HI  : rdhi  (); break;
-      case RD_MLVL: rdmlvl(); break;
-      case RD_WLVL: rdwlvl(); break;
-      case WR_CFG : wrcfg (); break;
-      case CALIB  : calib (); break;
-      default     : btnok (); break;
+      case RD_MIN  : btok(); rdmin   (); break;
+      case RD_MAX  : btok(); rdmax   (); break;
+      case RD_LO   : btok(); rdlo    (); break;
+      case RD_HI   : btok(); rdhi    (); break;
+      case RD_MLVL : btok(); rdmlvl  (); break;
+      case RD_WLVL : btok(); rdwlvl  (); break;
+      case RD_PID  : btok(); rdpid   (); break;
+      case WR_CFG  : btok(); wrcfg   (); break;
+      case CALIB   : btok(); calib   (); break;
+      case DBG     : btok(); dbg     (); break;
+      case PUMP_ON : btok(); pump_on (); break;
+      case PUMP_OFF: btok(); pump_off(); break;
+      default      : btnok   (); break;
       }
     } else {
       btnok();
@@ -292,44 +571,55 @@ void setup() {
 
   pinMode(PIN_MOIST_PWR, OUTPUT);
   pinMode(PIN_TRIG     , OUTPUT);
+  pinMode(PIN_PUMP     , OUTPUT);
+
+  pinMode(PIN_MOIST_DAT,  INPUT);
   pinMode(PIN_ECHO     ,  INPUT);
   
   digitalWrite(PIN_MOIST_PWR, LOW);
   digitalWrite(PIN_TRIG     , LOW);
-  analogWrite (PIN_PUMP     ,   0);
+  digitalWrite(PIN_PUMP     , LOW);
   
   _led.begin();
   _led.show();
 
   EEPROM.get(CFG_ADDRESS, _cfg);
+  _pid_sp = _cfg.moist_max;
 
-  TRACELN("Setup complete");
+  for(int i = 0; i < HIST_SZ; i++) {
+    hist_p[i] = 0;
+    hist_i[i] = 0;
+    hist_d[i] = 0;
+  }
+
+  _prev_measure = millis() / 1000;
+
+  TRACELN("========= Configuration =========");
+  TRACE("lo:  "); TRACELN(_cfg.moist_lo );
+  TRACE("hi:  "); TRACELN(_cfg.moist_hi );
+  TRACE("min: "); TRACELN(_cfg.moist_min);
+  TRACE("max: "); TRACELN(_cfg.moist_max);
+
+  level();
 }
 
 /* --------------------------------------------------------------------- loop */
-unsigned long prev_measure = 0;
 void loop() {
-  unsigned t;
-  unsigned m;
+  uint16_t t;
+  uint16_t m;
 
-  // --------- handle bluetooth communications
-  bluetooth();
+  bluetooth();  
+  t = millis()/1000;
+  m = t - _prev_measure;
   
-  t = millis();
-  m = (t - prev_measure) / 1000 / 60;
   if(m >= TIME_BTW_MEASURE) {
-    TRACELN("running loop");
-    prev_measure = t;
-
-    // --------- run moisture process
+    _prev_measure = t;
     moist();
-
-    // --------- run water level process
     level();
-    
-    // --------- run pump process
-    pump();
+    pid();
   }
+  
+  pump();
 
   /** --------------- playground --------------- **/
   #if 0
@@ -348,15 +638,5 @@ void loop() {
   if(r <   0) { st = 0; r = 0;   }
   
   delay(2);
-  #endif
-
-  #if 0
-  digitalWrite(PIN_MOIST_PWR, HIGH);
-  delay(500);
-  m = analogRead(PIN_MOIST_DAT);
-  digitalWrite(PIN_MOIST_PWR, LOW);
-  
-  TRACE("moisture level: "); TRACELN(m);
-  delay(500);
   #endif
 }

@@ -12,7 +12,6 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-
         <activity
             android:name=".SelectDevice.SelectDeviceActivity"
             android:configChanges="orientation|keyboardHidden"
@@ -24,7 +23,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
         <activity
             android:name=".ViewStatus.ViewStatusActivity"
             android:configChanges="orientation|keyboardHidden"
@@ -34,7 +32,6 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".SelectDevice.SelectDeviceActivity" />
         </activity>
-
         <activity
             android:name=".SelectPlant.SelectPlantActivity"
             android:configChanges="orientation|keyboardHidden"
@@ -44,7 +41,6 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".ViewStatus.ViewStatusActivity" />
         </activity>
-
         <activity
             android:name=".CustomPlant.CustomPlantActivity"
             android:configChanges="orientation|keyboardHidden"
@@ -54,7 +50,7 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".SelectPlant.SelectPlantActivity" />
         </activity>
-
+        <activity android:name=".Calibrate.CalibrateActivity"></activity>
     </application>
 
 </manifest>

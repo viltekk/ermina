@@ -60,9 +60,7 @@ class DeviceAdapter extends RecyclerView.Adapter<DeviceAdapter.ViewHolder> {
         final ErminaDevice    dev;
 
         dev             = mDevices.get(position);
-        onClickListener = new DeviceOnClickListener(mContext,
-                                                    mRecyclerView,
-                                                    mDevices.get(position));
+        onClickListener = new DeviceOnClickListener(mContext, mDevices.get(position));
 
         holder.mDevName.setText(dev.getName());
         holder.mDevAddr.setText(dev.getAddress());

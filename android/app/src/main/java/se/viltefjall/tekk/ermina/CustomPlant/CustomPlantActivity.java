@@ -80,11 +80,10 @@ public class CustomPlantActivity extends Activity {
     }
 
     private static class SetThrTask extends AsyncTask<ErminaDevice, Integer, Exception> {
-        private static final String ID = "DownloadXmlTask";
+        private static final String ID = "SetThrTask";
 
         private WeakReference<CustomPlantActivity> mActivity;
         private AnimationManager                   mAnimMgr;
-        private ErminaDevice                       mDevice;
         private int                                mHi;
         private int                                mLo;
 
@@ -100,8 +99,17 @@ public class CustomPlantActivity extends Activity {
             Exception ret = null;
             if(devices.length == 1) {
                 try {
-                    mDevice = devices[0];
-                    devices[0].setThr(mLo, mHi);
+                    int min   = devices[0].getMoistureMin();
+                    int max   = devices[0].getMoistureMax();
+                    int range = min - max;
+
+                    mLo = min - (int)((mLo/100f)*range);
+                    mHi = min - (int)((mHi/100f)*range);
+
+                    Log.e(ID, "mLo: " + mLo);
+                    Log.e(ID, "mHi: " + mHi);
+
+                    devices[0].setMoistureThr(mLo, mHi);
                 } catch (Exception e) {
                     ret = e;
                     Log.d(ID, e.toString());
@@ -118,7 +126,7 @@ public class CustomPlantActivity extends Activity {
             CustomPlantActivity a = mActivity.get();
             if(result == null) {
                 Intent intent = new Intent(a, ViewStatusActivity.class);
-                intent.putExtra(ViewStatusActivity.SELECTED_DEVICE, mDevice);
+                intent.putExtra(ViewStatusActivity.SELECTED_DEVICE, a.mDevice);
                 a.startActivity(intent);
             } else {
                 a.mError.displayError(result.getMessage(), false);

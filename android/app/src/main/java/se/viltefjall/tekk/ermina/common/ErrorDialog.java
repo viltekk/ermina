@@ -3,6 +3,9 @@ package se.viltefjall.tekk.ermina.common;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.content.Intent;
+
+import se.viltefjall.tekk.ermina.SelectDevice.SelectDeviceActivity;
 
 public class ErrorDialog {
     @SuppressWarnings("unused")
@@ -25,7 +28,8 @@ public class ErrorDialog {
             dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
                 @Override
                 public void onDismiss(DialogInterface dialogInterface) {
-                    mActivity.finish();
+                    Intent intent = new Intent(mActivity, SelectDeviceActivity.class);
+                    mActivity.startActivity(intent);
                 }
             });
         }

@@ -353,6 +353,10 @@ public class MoistureView extends View {
         float x, y, cx, cy;
         super.onTouchEvent(event);
 
+        if(!mCustomMode) {
+            return true;
+        }
+
         cx = mContentWidth/2f;
         cy = mContentHeight/2f;
         x  = event.getX();
