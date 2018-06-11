@@ -8,8 +8,7 @@
 
 // 0xRRGGBB
 #define LED_MIN   (0xff0000) // completely red
-//#define LED_MAX   (0x1599f6) // completely green
-#define LED_MAX   (0x0000ff) // completely green
+#define LED_MAX   (0x00ff00) // completely blue
 
 /* --------------------------------------------------------------------- pump */
 #define PIN_PUMP (   5)
@@ -22,7 +21,7 @@
 #define PIN_TRIG (10)
 #define PIN_ECHO (11)
 
-#define WLVL_MIN ( 10.0) // cm
+#define WLVL_MIN (  8.5) // cm
 #define WLVL_MAX (  3.0) // cm
 #define PW_MAX   (23200) // pulse width for 400 cm, max for HC-SR04
 
@@ -86,7 +85,7 @@ cfg_t _cfg;
 #define PUMP_OFF (253)
 
 /* -------------------------------------------------------------- global vars */
-#define TIME_BTW_MEASURE ((15*60)) // seconds to wait between measurements
+#define TIME_BTW_MEASURE ((60*60)) // seconds to wait between measurements
 
 Adafruit_NeoPixel _led = Adafruit_NeoPixel(LED_COUNT,
                                            PIN_LED,
@@ -94,15 +93,18 @@ Adafruit_NeoPixel _led = Adafruit_NeoPixel(LED_COUNT,
 
 float    _wlvl         = 0;
 uint16_t _mlvl         = 0;
-uint16_t _prev_measure = 0;
+uint32_t _prev_measure = 0;
 bool     _force_pump   = false;
 
 // debug
-#define HIST_SZ (20)
-int16_t hist_p[HIST_SZ];
-int16_t hist_i[HIST_SZ];
-int16_t hist_d[HIST_SZ];
-uint8_t hist_c = 0;
+#define  HIST_SZ (20)
+int16_t  hist_p[HIST_SZ];
+int16_t  hist_i[HIST_SZ];
+int16_t  hist_d[HIST_SZ];
+uint8_t  hist_pid_cnt = 0;
+
+uint16_t hist_moist[HIST_SZ];
+uint8_t  hist_moist_cnt = 0;
 
 /*---------------------------------------------------------------------- btwt */
 uint16_t btwt(uint16_t to) {
@@ -200,21 +202,25 @@ void level() {
   uint16_t t0;
   uint16_t t1;
   uint16_t pw;
+  float    w;
 
-  digitalWrite(PIN_TRIG, HIGH);
-  delayMicroseconds(10);
-  digitalWrite(PIN_TRIG, LOW);
+  for(int i = 0; i < 8; i++) {
+    digitalWrite(PIN_TRIG, HIGH);
+    delayMicroseconds(10);
+    digitalWrite(PIN_TRIG, LOW);
 
-  while( digitalRead(PIN_ECHO) == 0 );
-  t0 = micros();
+    while( digitalRead(PIN_ECHO) == 0 );
+    t0 = micros();
 
-  while( digitalRead(PIN_ECHO) == 1 );
-  t1 = micros();
+    while( digitalRead(PIN_ECHO) == 1 );
+    t1 = micros();
 
-  delay(60);
+    pw  = t1 - t0;
+    w  += pw / 58.0;
 
-  pw    = t1 - t0;
-  _wlvl = pw / 58.0;
+    delay(60);
+  }
+  _wlvl = w/8;
   
   TRACE("OF: "); TRACE(pw >= PW_MAX ? "yes" : "no"); TRACE("\t");
   TRACE("wlvl: "); TRACELN(_wlvl);
@@ -243,6 +249,12 @@ void moist() {
     _moist_sat = _mlvl <= _cfg.moist_hi;
   } else {
     _moist_sat = !(_mlvl >= _cfg.moist_lo);
+  }
+
+  hist_moist[hist_moist_cnt] = _mlvl;
+  hist_moist_cnt++;
+  if(hist_moist_cnt >= HIST_SZ) {
+    hist_moist_cnt = 0;
   }
 
   TRACE("moisture level: "); TRACELN(_mlvl);
@@ -289,12 +301,12 @@ void pid() {
 
   _pid_e = e;
 
-  hist_p[hist_c] = p;
-  hist_i[hist_c] = i;
-  hist_d[hist_c] = d;
-  hist_c++;
-  if(hist_c > HIST_SZ) {
-    hist_c = 0;
+  hist_p[hist_pid_cnt] = p;
+  hist_i[hist_pid_cnt] = i;
+  hist_d[hist_pid_cnt] = d;
+  hist_pid_cnt++;
+  if(hist_pid_cnt > HIST_SZ) {
+    hist_pid_cnt = 0;
   }
 }
 
@@ -527,6 +539,14 @@ void dbg() {
 
   bt.print("_moist_sat: "); bt.println(_moist_sat);
   bt.print("_moist_sat: "); bt.println(_moist_sat);
+
+  for(int i = 0; i < HIST_SZ; i++) {
+    bt.print("_mlvl["); bt.print(i); bt.print("] = ");
+    bt.println(hist_moist[i]);
+
+    Serial.print("_mlvl["); Serial.print(i); Serial.print("] = ");
+    Serial.println(hist_moist[i]);
+  }
 }
 
 /* ---------------------------------------------------------------- bluetooth */
@@ -603,8 +623,8 @@ void setup() {
 
 /* --------------------------------------------------------------------- loop */
 void loop() {
-  uint16_t t;
-  uint16_t m;
+  uint32_t t;
+  uint32_t m;
 
   bluetooth();  
   t = millis()/1000;
