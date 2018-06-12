@@ -8,7 +8,7 @@
 
 // 0xRRGGBB
 #define LED_MIN   (0xff0000) // completely red
-#define LED_MAX   (0x00ff00) // completely blue
+#define LED_MAX   (0x0000ff) // completely blue
 
 /* --------------------------------------------------------------------- pump */
 #define PIN_PUMP (   5)
@@ -84,6 +84,24 @@ cfg_t _cfg;
 #define PUMP_ON  (254)
 #define PUMP_OFF (253)
 
+typedef struct {
+  float m_wlvl;
+  float m_mlvl;
+  bool  m_sat;
+} dbg_t;
+
+#define  HIST_SZ (6)
+int16_t  hist_p[HIST_SZ];
+int16_t  hist_i[HIST_SZ];
+int16_t  hist_d[HIST_SZ];
+uint8_t  hist_pid_cnt = 0;
+
+uint16_t hist_moist[HIST_SZ];
+uint8_t  hist_moist_cnt = 0;
+
+dbg_t    hist_dbg[HIST_SZ];
+uint8_t  hist_dbg_cnt = 0;
+
 /* -------------------------------------------------------------- global vars */
 #define TIME_BTW_MEASURE ((60*60)) // seconds to wait between measurements
 
@@ -95,16 +113,6 @@ float    _wlvl         = 0;
 uint16_t _mlvl         = 0;
 uint32_t _prev_measure = 0;
 bool     _force_pump   = false;
-
-// debug
-#define  HIST_SZ (20)
-int16_t  hist_p[HIST_SZ];
-int16_t  hist_i[HIST_SZ];
-int16_t  hist_d[HIST_SZ];
-uint8_t  hist_pid_cnt = 0;
-
-uint16_t hist_moist[HIST_SZ];
-uint8_t  hist_moist_cnt = 0;
 
 /*---------------------------------------------------------------------- btwt */
 uint16_t btwt(uint16_t to) {
@@ -339,6 +347,15 @@ void pump() {
       _pump_start   = millis()/1000;
       _pump_running = true;
       TRACE("running pump for "); TRACE(_pump_t); TRACELN(" seconds");
+
+      hist_dbg[hist_dbg_cnt].m_wlvl = _wlvl;
+      hist_dbg[hist_dbg_cnt].m_mlvl = _mlvl;
+      hist_dbg[hist_dbg_cnt].m_sat  = _moist_sat;
+
+      hist_dbg_cnt++;
+      if(hist_dbg_cnt > HIST_SZ) {
+        hist_dbg_cnt = 0;
+      }
     }
   }
 
@@ -547,6 +564,37 @@ void dbg() {
     Serial.print("_mlvl["); Serial.print(i); Serial.print("] = ");
     Serial.println(hist_moist[i]);
   }
+  bt.println("");
+  Serial.println("");
+
+  for(int i = 0; i < HIST_SZ; i++) {
+    bt.print("dbg["); bt.print(i); bt.print("].mlvl = ");
+    bt.println(hist_dbg[i].m_mlvl);
+
+    bt.print("dbg["); bt.print(i); bt.print("].wlvl = ");
+    bt.println(hist_dbg[i].m_wlvl);
+
+    bt.print("dbg["); bt.print(i); bt.print("].sat  = ");
+    bt.println(hist_dbg[i].m_sat);
+
+    Serial.print("dbg["); Serial.print(i); Serial.print("].mlvl = ");
+    Serial.println(hist_dbg[i].m_mlvl);
+
+    Serial.print("dbg["); Serial.print(i); Serial.print("].wlvl = ");
+    Serial.println(hist_dbg[i].m_wlvl);
+
+    Serial.print("dbg["); Serial.print(i); Serial.print("].sat  = ");
+    Serial.println(hist_dbg[i].m_sat);
+  }
+
+  bt.println("");
+  Serial.println("");
+
+  bt.print("hist_dbg_cnt   = "); bt.println(hist_dbg_cnt  );
+  bt.print("hist_moist_cnt = "); bt.println(hist_moist_cnt);
+
+  Serial.print("hist_dbg_cnt   = "); Serial.println(hist_dbg_cnt  );
+  Serial.print("hist_moist_cnt = "); Serial.println(hist_moist_cnt);
 }
 
 /* ---------------------------------------------------------------- bluetooth */
