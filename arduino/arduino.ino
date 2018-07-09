@@ -83,11 +83,13 @@ cfg_t _cfg;
 #define DBG      (255)
 #define PUMP_ON  (254)
 #define PUMP_OFF (253)
+#define LOOP     (252)
 
 typedef struct {
-  float m_wlvl;
-  float m_mlvl;
-  bool  m_sat;
+  float    m_wlvl;
+  float    m_mlvl;
+  bool     m_sat;
+  uint16_t m_pump_t;
 } dbg_t;
 
 #define  HIST_SZ (6)
@@ -113,6 +115,7 @@ float    _wlvl         = 0;
 uint16_t _mlvl         = 0;
 uint32_t _prev_measure = 0;
 bool     _force_pump   = false;
+bool     _force_loop   = false;
 
 /*---------------------------------------------------------------------- btwt */
 uint16_t btwt(uint16_t to) {
@@ -266,6 +269,7 @@ void moist() {
   }
 
   TRACE("moisture level: "); TRACELN(_mlvl);
+  TRACE("moist sat: "); TRACELN(_moist_sat);
 }
 
 /* ---------------------------------------------------------------------- pid */
@@ -296,7 +300,6 @@ void pid() {
   TRACE("d = "); TRACE(d); TRACE("\t");
   TRACE("t = "); TRACELN(t);
 
-  _prev_pump_t = _pump_t;
   if(t < 0) {
     _pump_t = 0;
   } else {
@@ -330,6 +333,12 @@ void pump_off() {
   _force_pump = false;
 }
 
+/* ---------------------------------------------------------------- force_loop */
+void force_loop() {
+  TRACELN("force loop");
+  _force_loop = true;
+}
+
 /* --------------------------------------------------------------------- pump */
 bool     _pump_running = false;
 uint16_t _pump_start   = 0;
@@ -344,13 +353,15 @@ void pump() {
     }
   } else {
     if(!_moist_sat && _pump_t > 0) {
+      _prev_pump_t  = _pump_t;
       _pump_start   = millis()/1000;
       _pump_running = true;
       TRACE("running pump for "); TRACE(_pump_t); TRACELN(" seconds");
 
-      hist_dbg[hist_dbg_cnt].m_wlvl = _wlvl;
-      hist_dbg[hist_dbg_cnt].m_mlvl = _mlvl;
-      hist_dbg[hist_dbg_cnt].m_sat  = _moist_sat;
+      hist_dbg[hist_dbg_cnt].m_wlvl   = _wlvl;
+      hist_dbg[hist_dbg_cnt].m_mlvl   = _mlvl;
+      hist_dbg[hist_dbg_cnt].m_sat    = _moist_sat;
+      hist_dbg[hist_dbg_cnt].m_pump_t = _pump_t;
 
       hist_dbg_cnt++;
       if(hist_dbg_cnt > HIST_SZ) {
@@ -437,6 +448,7 @@ void wrcfg() {
   } else {
     _cfg.moist_lo = moist_lo;
     _cfg.moist_hi = moist_hi;
+    _pid_sp       = moist_hi;
     EEPROM.put(CFG_ADDRESS, _cfg);
     btok();
   }
@@ -491,7 +503,7 @@ void calib() {
 
 /* ---------------------------------------------------------------------- dbg */
 void dbg() {
-  #if 0
+  #if 1
   for(int i = 0; i < HIST_SZ; i++) {
     bt.print("p["); bt.print(i); bt.print("] = ");
     bt.println(hist_p[i]);
@@ -520,6 +532,9 @@ void dbg() {
     Serial.println(hist_d[i]);
   }
   #endif
+
+  Serial.print("pid_sp: "); Serial.println(_pid_sp);
+  bt.print("pid_sp: "); bt.println(_pid_sp);
 
   Serial.print("cfg.min: "); Serial.println(_cfg.moist_min);
   Serial.print("cfg.max: "); Serial.println(_cfg.moist_max);
@@ -577,6 +592,9 @@ void dbg() {
     bt.print("dbg["); bt.print(i); bt.print("].sat  = ");
     bt.println(hist_dbg[i].m_sat);
 
+    bt.print("dbg["); bt.print(i); bt.print("].tme  = ");
+    bt.println(hist_dbg[i].m_pump_t);
+
     Serial.print("dbg["); Serial.print(i); Serial.print("].mlvl = ");
     Serial.println(hist_dbg[i].m_mlvl);
 
@@ -585,6 +603,9 @@ void dbg() {
 
     Serial.print("dbg["); Serial.print(i); Serial.print("].sat  = ");
     Serial.println(hist_dbg[i].m_sat);
+    
+    Serial.print("dbg["); Serial.print(i); Serial.print("].tme  = ");
+    Serial.println(hist_dbg[i].m_pump_t);
   }
 
   bt.println("");
@@ -610,18 +631,19 @@ void bluetooth() {
       e = btrd(&v, BT_TO); BTCHK(e);
 
       switch(v) {
-      case RD_MIN  : btok(); rdmin   (); break;
-      case RD_MAX  : btok(); rdmax   (); break;
-      case RD_LO   : btok(); rdlo    (); break;
-      case RD_HI   : btok(); rdhi    (); break;
-      case RD_MLVL : btok(); rdmlvl  (); break;
-      case RD_WLVL : btok(); rdwlvl  (); break;
-      case RD_PID  : btok(); rdpid   (); break;
-      case WR_CFG  : btok(); wrcfg   (); break;
-      case CALIB   : btok(); calib   (); break;
-      case DBG     : btok(); dbg     (); break;
-      case PUMP_ON : btok(); pump_on (); break;
-      case PUMP_OFF: btok(); pump_off(); break;
+      case RD_MIN  : btok(); rdmin     (); break;
+      case RD_MAX  : btok(); rdmax     (); break;
+      case RD_LO   : btok(); rdlo      (); break;
+      case RD_HI   : btok(); rdhi      (); break;
+      case RD_MLVL : btok(); rdmlvl    (); break;
+      case RD_WLVL : btok(); rdwlvl    (); break;
+      case RD_PID  : btok(); rdpid     (); break;
+      case WR_CFG  : btok(); wrcfg     (); break;
+      case CALIB   : btok(); calib     (); break;
+      case DBG     : btok(); dbg       (); break;
+      case PUMP_ON : btok(); pump_on   (); break;
+      case PUMP_OFF: btok(); pump_off  (); break;
+      case LOOP    : btok(); force_loop(); break;
       default      : btnok   (); break;
       }
     } else {
@@ -650,7 +672,7 @@ void setup() {
   _led.show();
 
   EEPROM.get(CFG_ADDRESS, _cfg);
-  _pid_sp = _cfg.moist_max;
+  _pid_sp = _cfg.moist_hi;
 
   for(int i = 0; i < HIST_SZ; i++) {
     hist_p[i] = 0;
@@ -678,11 +700,13 @@ void loop() {
   t = millis()/1000;
   m = t - _prev_measure;
   
-  if(m >= TIME_BTW_MEASURE) {
+  if(m >= TIME_BTW_MEASURE || _force_loop) {
     _prev_measure = t;
     moist();
     level();
     pid();
+
+    _force_loop = false;
   }
   
   pump();
