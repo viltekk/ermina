@@ -13,9 +13,8 @@
 /* --------------------------------------------------------------------- pump */
 #define PIN_PUMP (   5)
 #define PUMP_MAX ( 300) // max amount of seconds to run pump
-#define PID_Kp   ( 0.4)
-#define PID_Ki   (0.02)
-#define PID_Kd   ( 0.2)
+#define PID_Kp   ( 1.6)
+#define PID_Kd   ( 0.8)
 
 /* -------------------------------------------------------------- water level */
 #define PIN_TRIG (10)
@@ -94,7 +93,6 @@ typedef struct {
 
 #define  HIST_SZ (6)
 int16_t  hist_p[HIST_SZ];
-int16_t  hist_i[HIST_SZ];
 int16_t  hist_d[HIST_SZ];
 uint8_t  hist_pid_cnt = 0;
 
@@ -105,7 +103,7 @@ dbg_t    hist_dbg[HIST_SZ];
 uint8_t  hist_dbg_cnt = 0;
 
 /* -------------------------------------------------------------- global vars */
-#define TIME_BTW_MEASURE ((60*60)) // seconds to wait between measurements
+#define TIME_BTW_MEASURE ((6*60*60)) // seconds to wait between measurements
 
 Adafruit_NeoPixel _led = Adafruit_NeoPixel(LED_COUNT,
                                            PIN_LED,
@@ -274,7 +272,6 @@ void moist() {
 
 /* ---------------------------------------------------------------------- pid */
 int16_t  _pid_e       = 0;
-int16_t  _pid_i       = 0;
 uint8_t  _pid_sp      = 0;
 uint16_t _pump_t      = 0;
 uint16_t _prev_pump_t = 0;
@@ -282,21 +279,17 @@ uint16_t _prev_pump_t = 0;
 void pid() {
   int16_t e;
   int16_t p;
-  int16_t i;
   int16_t d;
   int16_t t;
 
   e = _mlvl - _pid_sp;
-  _pid_i += e;
 
   p = PID_Kp * e;
-  i = PID_Ki * _pid_i;
   d = PID_Kd * (_pid_e - e);
-  t = p + i + d;
+  t = p + d;
 
   TRACE("e = "); TRACE(e); TRACE("\t");
   TRACE("p = "); TRACE(p); TRACE("\t");
-  TRACE("i = "); TRACE(i); TRACE("\t");
   TRACE("d = "); TRACE(d); TRACE("\t");
   TRACE("t = "); TRACELN(t);
 
@@ -313,7 +306,6 @@ void pid() {
   _pid_e = e;
 
   hist_p[hist_pid_cnt] = p;
-  hist_i[hist_pid_cnt] = i;
   hist_d[hist_pid_cnt] = d;
   hist_pid_cnt++;
   if(hist_pid_cnt > HIST_SZ) {
@@ -377,9 +369,8 @@ void pump() {
 /*--------------------------------------------------------------------- rdpid */
 void rdpid() {
   TRACE("Read PID: ");
-  TRACE(PID_Kp); TRACE(" "); TRACE(PID_Ki); TRACE(" "); TRACELN(PID_Kd);
+  TRACE(PID_Kp); TRACE(" "); TRACE(" "); TRACELN(PID_Kd);
   bt.println(PID_Kp);
-  bt.println(PID_Ki);
   bt.println(PID_Kd);
 }
 
@@ -510,16 +501,6 @@ void dbg() {
 
     Serial.print("p["); Serial.print(i); Serial.print("] = ");
     Serial.println(hist_p[i]);
-  }
-  bt.println();
-  Serial.println();
-
-  for(int i = 0; i < HIST_SZ; i++) {
-    bt.print("i["); bt.print(i); bt.print("] = ");
-    bt.println(hist_i[i]);
-
-    Serial.print("i["); Serial.print(i); Serial.print("] = ");
-    Serial.println(hist_i[i]);
   }
   bt.println();
   Serial.println();
@@ -676,7 +657,6 @@ void setup() {
 
   for(int i = 0; i < HIST_SZ; i++) {
     hist_p[i] = 0;
-    hist_i[i] = 0;
     hist_d[i] = 0;
   }
 
