@@ -9,6 +9,7 @@
 // 0xRRGGBB
 #define LED_MIN   (0xff0000) // completely red
 #define LED_MAX   (0x0000ff) // completely blue
+#define LED_RUN   (0xffffff) // completely white
 
 /* --------------------------------------------------------------------- pump */
 #define PIN_PUMP (   5)
@@ -88,7 +89,7 @@ typedef struct {
   float    m_wlvl;
   float    m_mlvl;
   bool     m_sat;
-  uint16_t m_pump_t;
+  uint32_t m_pump_t;
 } dbg_t;
 
 #define  HIST_SZ (6)
@@ -273,8 +274,8 @@ void moist() {
 /* ---------------------------------------------------------------------- pid */
 int16_t  _pid_e       = 0;
 uint8_t  _pid_sp      = 0;
-uint16_t _pump_t      = 0;
-uint16_t _prev_pump_t = 0;
+uint32_t _pump_t      = 0;
+uint32_t _prev_pump_t = 0;
 
 void pid() {
   int16_t e;
@@ -333,22 +334,41 @@ void force_loop() {
 
 /* --------------------------------------------------------------------- pump */
 bool     _pump_running = false;
-uint16_t _pump_start   = 0;
+uint32_t _pump_start   = 0;
 
 void pump() {
-  uint8_t v;
+  uint8_t  v;
+  uint8_t  r;
+  uint8_t  g;
+  uint8_t  b;
+  uint32_t t;
 
   if(_pump_running) {
-    _pump_running = millis()/1000 - _pump_start < _pump_t;
+    t = millis()/1000;
+    if(t < _pump_start) {
+      // millis rollover
+      _pump_running = false;
+    } else {
+      _pump_running = t - _pump_start < _pump_t;
+    }
+    
     if(!_pump_running) {
       _pump_t = 0;
+      level();
     }
   } else {
     if(!_moist_sat && _pump_t > 0) {
       _prev_pump_t  = _pump_t;
       _pump_start   = millis()/1000;
       _pump_running = true;
+      
       TRACE("running pump for "); TRACE(_pump_t); TRACELN(" seconds");
+      r = (LED_RUN >> 16) & 0xff;
+      g = (LED_RUN >>  8) & 0xff;
+      b = (LED_RUN      ) & 0xff;
+    
+      _led.setPixelColor(0, r, g, b);
+      _led.show();
 
       hist_dbg[hist_dbg_cnt].m_wlvl   = _wlvl;
       hist_dbg[hist_dbg_cnt].m_mlvl   = _mlvl;
@@ -678,7 +698,13 @@ void loop() {
 
   bluetooth();  
   t = millis()/1000;
-  m = t - _prev_measure;
+
+  if(t >= _prev_measure) {
+    m = t - _prev_measure;
+  } else {
+    // millis rollover
+    _force_loop = true;
+  }
   
   if(m >= TIME_BTW_MEASURE || _force_loop) {
     _prev_measure = t;
